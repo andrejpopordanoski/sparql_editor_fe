@@ -1,13 +1,18 @@
 import { Button, FormControl, Input, OutlinedInput, TextareaAutosize, TextField } from '@material-ui/core';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { basicStyles } from 'styles';
 import { InputLabel } from '@material-ui/core';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { processQuery } from 'redux/actions/data.actions';
+import { logoutAction } from 'redux/actions/auth.actions';
+
 import { themes } from 'static';
 import './Editor.css';
 import { Resizable, ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
+import View from 'module/components/View';
+import Text from 'module/components/Text';
+import { tokenHelper } from 'services/tokenHelpers';
 
 var CodeMirror = require('react-codemirror');
 // import { UnControlled as CodeMirror } from 'react-codemirror2';
@@ -27,10 +32,20 @@ require('codemirror/mode/javascript/javascript');
 const SparqlParser = require('sparqljs').Parser;
 const parser = new SparqlParser();
 
-export default function Editor() {
+export default function Editor({ history }) {
     const dispatch = useDispatch();
     const [sparqlQueryVal, setSparqlQueryVal] = useState(`select distinct ?Concept where {[] a ?Concept} LIMIT 10`);
-    const [url, setUrl] = useState(`https://dbpedia.com`);
+    const [url, setUrl] = useState(`http://dbpedia.org/sparql`);
+    const [graphNameIri, setGraphNameIri] = useState(`http://dbpedia.org`);
+    const [timeOutVal, setTimeoutVal] = useState(30000);
+    const authState = useSelector(state => state.auth);
+    const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
+
+    useEffect(() => {
+        console.log('it execs');
+        setLoggedIn(tokenHelper.auth());
+    }, [authState]);
+
     const [theme, setTheme] = useState(`default`);
     const [width, setWidth] = useState(200);
     const [height, setHeight] = useState(200);
@@ -60,96 +75,129 @@ export default function Editor() {
         }
         try {
             var parsedQuery = parser.parse(data);
+
+            // var parsedQuery = parser.parse(data);
         } catch (e) {
             console.log(e.message);
             let splitted = e.message.split(/\r?\n/);
             console.log(splitted);
-            let splitFirstLine = splitted[0].split(' ');
-            let lineNumber = splitFirstLine[splitFirstLine.length - 1];
-            lineNumber = lineNumber.substring(0, lineNumber.length - 1);
-            console.log('line number is', lineNumber);
-            let mistakeStart = splitted[2].length - 1;
-            let incorrectness = splitted[1].substring(mistakeStart, splitted[1].length - 1);
-            console.log(incorrectness);
-            // let relativeCharStartIndex = mistakeStart;
-            // if (incorrectness.contains('...')) {
-            //     relativeCharStartIndex = relativeCharStartIndex - 3;
-            // }
-            incorrectness.replace('...', '');
-            let message = splitted[3];
+            if (splitted.length === 4) {
+                let splitFirstLine = splitted[0].split(' ');
+                let lineNumber = splitFirstLine[splitFirstLine.length - 1];
+                lineNumber = lineNumber.substring(0, lineNumber.length - 1);
+                console.log('line number is', lineNumber);
+                let mistakeStart = splitted[2].length - 1;
+                let incorrectness = splitted[1].substring(mistakeStart, splitted[1].length - 1);
 
-            codeMirrorRef.current.codeMirror.setGutterMarker(0, 'error', makeMarker(message));
-            console.log();
+                // let relativeCharStartIndex = mistakeStart;
+                // if (incorrectness.contains('...')) {
+                //     relativeCharStartIndex = relativeCharStartIndex - 3;
+                // }
+                incorrectness.replace('...', '');
+                incorrectness = incorrectness.substring(0, 5);
+                incorrectness = incorrectness.trim();
 
-            let codeMirror = codeMirrorRef.current.codeMirror;
+                console.log('1' + incorrectness + '1');
+                let message = splitted[3];
 
-            // console.log("relativeCharStartIndex", relativeCharStartIndex)
+                codeMirrorRef.current.codeMirror.setGutterMarker(+lineNumber - 1, 'error', makeMarker(message));
+                console.log();
 
-            let lineTokens = codeMirror.getLineTokens(lineNumber - 1);
-            // console.log(codeMirror.lineInfo(lineNumber - 1));
+                let codeMirror = codeMirrorRef.current.codeMirror;
 
-            let fullLineText = codeMirror.lineInfo(lineNumber - 1).text;
+                // console.log("relativeCharStartIndex", relativeCharStartIndex)
 
-            let indexOfStartString = fullLineText.indexOf(incorrectness);
+                let lineTokens = codeMirror.getLineTokens(+lineNumber - 1);
+                // console.log(codeMirror.lineInfo(lineNumber - 1));
 
-            console.log('error starts at', indexOfStartString);
+                let fullLineText = codeMirror.lineInfo(+lineNumber - 1).text;
 
-            console.log(lineTokens);
+                console.log(fullLineText);
 
-            let errorChars = {};
+                let indexOfStartString = fullLineText.indexOf(incorrectness);
 
-            lineTokens.forEach(({ start, end }) => {
-                if (start <= indexOfStartString && end > indexOfStartString) {
-                    errorChars = { start: indexOfStartString, end: end };
-                }
-            });
+                console.log('error starts at', indexOfStartString);
 
-            let marker = codeMirror
-                .getDoc()
-                .markText(
-                    { line: lineNumber - 1, ch: errorChars.start },
-                    { line: lineNumber - 1, ch: errorChars.end },
-                    { className: 'syntax_error' }
-                );
-            console.log(marker);
+                console.log(lineTokens);
 
-            setCurrentMarker(marker);
+                let errorChars = {};
 
-            // codeMirror.addLineClass(0, 'select', 'syntax_error');
-            // let state = codeMirror.getWrapperElement();
-            // console.log(state);
-            // let word = codeMirror.findWordAt({ ch: 3, line: 0 });
-            // console.log(word);
+                lineTokens.forEach(({ start, end }) => {
+                    if (start <= indexOfStartString && end > indexOfStartString) {
+                        errorChars = { start: indexOfStartString, end: end };
+                    }
+                });
 
-            // let lines = document.getElementsByClassName('CodeMirror-line');
-            // let line = lines[lineNumber - 1];
-            // console.log(line.firstChild);
-            // let token = 1;
+                let marker = codeMirror
+                    .getDoc()
+                    .markText(
+                        { line: lineNumber - 1, ch: errorChars.start },
+                        { line: lineNumber - 1, ch: errorChars.end },
+                        { className: 'syntax_error' }
+                    );
+                console.log(marker);
 
-            // let tokenIWant = line.firstChild.firstChild;
-
-            // for (let i = 0; i < token; i++) {
-            //     tokenIWant = tokenIWant.nextElementSibling;
-            // }
-            // setTimeout(() => {
-            //     tokenIWant.classList.add('syntax_error');
-            //     console.log(tokenIWant);
-            // }, 200);
-
-            // line.firstChild.removeChild(tokenIWant);
-
-            // console.log(tokenIWant);
-            // // codeMirror.refresh();
-            // console.log();
+                setCurrentMarker(marker);
+            }
         }
     }
 
     return (
-        <div style={basicStyles.paddingContainer}>
-            <p> SPARQL Editor </p>
+        <View style={{ ...basicStyles.paddingContainer, flex: 1 }}>
+            <Text> SPARQL Editor </Text>
+            {loggedIn && (
+                <View>
+                    <Button
+                        onClick={() => {
+                            // dispatch(lo);
+                            dispatch(logoutAction());
+                        }}
+                    >
+                        Logout
+                    </Button>
+                </View>
+            )}
+            {!loggedIn && (
+                <View>
+                    <Button
+                        onClick={() => {
+                            // dispatch(lo);
+                            history.replace('/login');
+                        }}
+                    >
+                        Login
+                    </Button>
+                </View>
+            )}
             {/* <FormControl style={{ flex: 1 }}> */}
             <form action="http://localhost:8080/sparql" id="someform" method={'POST'}>
-                Url: <input type="text" name="url" />
+                Url:{' '}
+                <input
+                    type="text"
+                    name="url"
+                    value={url}
+                    onChange={event => {
+                        setUrl(event.target.value);
+                    }}
+                />
+                Default graph set iri:{' '}
+                <input
+                    type="text"
+                    name="defaultGraphSetIri"
+                    value={graphNameIri}
+                    onChange={event => {
+                        setGraphNameIri(event.target.value);
+                    }}
+                />
+                Timeout:{' '}
+                <input
+                    type="number"
+                    name="timeout"
+                    value={timeOutVal}
+                    onChange={event => {
+                        setTimeoutVal(event.target.value);
+                    }}
+                />
                 <TextareaAutosize
                     hidden
                     name={'queryStr'}
@@ -166,6 +214,12 @@ export default function Editor() {
                 <select name="format" form="someform">
                     <option value="application/json">json</option>
                     <option value="application/html">html</option>
+                    <option value="text/turtle">turtle</option>
+                    <option value="application/xml">xml</option>
+                    <option value="application/rdf+xml">rdf/xml</option>
+                    <option value="application/n-triples">N-triples</option>
+                    <option value="text/csv">csv</option>
+                    <option value="text/tab-separated-values">tsv</option>
                 </select>
                 <input type="submit" />
             </form>
@@ -208,6 +262,12 @@ export default function Editor() {
                     value={sparqlQueryVal}
                     lint={true}
                     onChange={data => {
+                        console.log(data);
+                        // let dataSplit = data.split(/\r?\n/);
+                        // let newData = '';
+                        // for (let i = 0; i < dataSplit.length; i++) {
+                        //     newData += dataSplit[i] + '\n';
+                        // }
                         setSparqlQueryVal(data);
                         validator(data);
                     }}
@@ -242,14 +302,14 @@ export default function Editor() {
                     })}
                 </select>
             </div>
-            <button
+            {/* <button
                 onClick={() => {
                     validator();
                 }}
             >
                 {' '}
                 validate{' '}
-            </button>
+            </button> */}
 
             {/* <InputLabel> Default Data Set Name (Graph IRI)</InputLabel>
             <OutlinedInput />
@@ -265,6 +325,6 @@ export default function Editor() {
                 Submit
             </Button> */}
             {/* </FormControl> */}
-        </div>
+        </View>
     );
 }

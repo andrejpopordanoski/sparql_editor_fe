@@ -1,6 +1,6 @@
 export const tokenHelper = {
     auth: () => {
-        let persist = localStorage.getItem('persist:fitness');
+        let persist = localStorage.getItem('persist:sparql-editor');
         console.log(persist, 'here');
         if (persist) {
             try {
@@ -14,7 +14,7 @@ export const tokenHelper = {
         }
     },
     get refreshToken() {
-        let persist = localStorage.getItem('persist:fitness');
+        let persist = localStorage.getItem('persist:sparql-editor');
         if (persist) {
             try {
                 let refresh_token = JSON.parse(JSON.parse(persist).auth).data.data.refresh_token;
@@ -27,7 +27,7 @@ export const tokenHelper = {
         }
     },
     get isAccessTokenExpired() {
-        let persist = localStorage.getItem('persist:fitness');
+        let persist = localStorage.getItem('persist:sparql-editor');
         if (persist) {
             try {
                 let data = JSON.parse(JSON.parse(persist).auth).data.data;
