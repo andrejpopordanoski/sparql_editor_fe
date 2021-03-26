@@ -22,7 +22,6 @@ var CodeMirror = require('react-codemirror');
 require('codemirror/lib/codemirror.css');
 
 themes.forEach(theme => {
-    // console.log(theme);
     require(`codemirror/theme/${theme}.css`);
 });
 
@@ -30,6 +29,7 @@ require('codemirror/mode/sparql/sparql');
 require('codemirror/mode/javascript/javascript');
 
 const SparqlParser = require('sparqljs').Parser;
+// const SparqlParser = require('module/screens/sparql').Parser;
 const parser = new SparqlParser();
 
 export default function Editor({ history }) {
@@ -86,39 +86,45 @@ export default function Editor({ history }) {
                 let lineNumber = splitFirstLine[splitFirstLine.length - 1];
                 lineNumber = lineNumber.substring(0, lineNumber.length - 1);
                 console.log('line number is', lineNumber);
-                let mistakeStart = splitted[2].length - 1;
-                let incorrectness = splitted[1].substring(mistakeStart, splitted[1].length - 1);
+                let mistakeStart = splitted[2].length;
+                // let incorrectness = splitted[1].substring(mistakeStart, splitted[1].length - 1);
 
                 // let relativeCharStartIndex = mistakeStart;
                 // if (incorrectness.contains('...')) {
                 //     relativeCharStartIndex = relativeCharStartIndex - 3;
                 // }
-                incorrectness.replace('...', '');
-                incorrectness = incorrectness.substring(0, 5);
-                incorrectness = incorrectness.trim();
+                // incorrectness.replace('...', '');
+                let incorrectnessStart = splitted[1].replace('...', '');
+                // incorrectness = incorrectness.substring(0, 5);
+                // incorrectness = incorrectness.trim();
 
-                console.log('1' + incorrectness + '1');
+                // console.log(incorrectness);
+
                 let message = splitted[3];
 
                 codeMirrorRef.current.codeMirror.setGutterMarker(+lineNumber - 1, 'error', makeMarker(message));
-                console.log();
 
                 let codeMirror = codeMirrorRef.current.codeMirror;
 
-                // console.log("relativeCharStartIndex", relativeCharStartIndex)
-
                 let lineTokens = codeMirror.getLineTokens(+lineNumber - 1);
-                // console.log(codeMirror.lineInfo(lineNumber - 1));
 
                 let fullLineText = codeMirror.lineInfo(+lineNumber - 1).text;
+                let prevInputSize = 0;
+                let prevLines = 0;
+                for (let i = 0; i < +lineNumber - 1; i++) {
+                    prevInputSize += codeMirror.lineInfo(i).text.length;
+                }
 
-                console.log(fullLineText);
+                // let indexOfStartString = fullLineText.indexOf(incorrectness);
 
-                let indexOfStartString = fullLineText.indexOf(incorrectness);
+                let indexOfStartString = data.replace(/\n/g, '').indexOf(incorrectnessStart);
 
-                console.log('error starts at', indexOfStartString);
+                console.log('Finding index before transofrmations ', indexOfStartString);
 
-                console.log(lineTokens);
+                // let indexOfStartStringStart = data.replace(/\n/g, '').indexOf(incorrectnessStart);
+
+                indexOfStartString = indexOfStartString - prevInputSize + (mistakeStart > 20 ? mistakeStart - 4 : mistakeStart - 1);
+                console.log('After', indexOfStartString, mistakeStart);
 
                 let errorChars = {};
 
@@ -135,7 +141,6 @@ export default function Editor({ history }) {
                         { line: lineNumber - 1, ch: errorChars.end },
                         { className: 'syntax_error' }
                     );
-                console.log(marker);
 
                 setCurrentMarker(marker);
             }
@@ -249,7 +254,7 @@ export default function Editor({ history }) {
                 <CodeMirror
                     ref={codeMirrorRef}
                     onRenderLine={(editor, lineHandle, element) => {
-                        console.log(element);
+                        // console.log(element);
                     }}
                     // editorDidMount={editorRef => {
                     //     setEditor(editorRef);
@@ -262,12 +267,6 @@ export default function Editor({ history }) {
                     value={sparqlQueryVal}
                     lint={true}
                     onChange={data => {
-                        console.log(data);
-                        // let dataSplit = data.split(/\r?\n/);
-                        // let newData = '';
-                        // for (let i = 0; i < dataSplit.length; i++) {
-                        //     newData += dataSplit[i] + '\n';
-                        // }
                         setSparqlQueryVal(data);
                         validator(data);
                     }}
