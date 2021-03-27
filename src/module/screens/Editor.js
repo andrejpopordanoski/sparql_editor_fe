@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { basicStyles } from 'styles';
 import { InputLabel } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { processQuery } from 'redux/actions/data.actions';
+import { processQuery, saveQueryAction } from 'redux/actions/data.actions';
 import { logoutAction } from 'redux/actions/auth.actions';
 
 import { themes } from 'static';
@@ -38,6 +38,10 @@ export default function Editor({ history }) {
     const [url, setUrl] = useState(`http://dbpedia.org/sparql`);
     const [graphNameIri, setGraphNameIri] = useState(`http://dbpedia.org`);
     const [timeOutVal, setTimeoutVal] = useState(30000);
+    const [format, setFormat] = useState('application/json');
+    const [checkboxVal, setCheckboxVal] = useState(false);
+    const [queryNameVal, setQueryNameVal] = useState('Untitled');
+
     const authState = useSelector(state => state.auth);
     const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
 
@@ -216,9 +220,16 @@ export default function Editor({ history }) {
                     rowsMin={10}
                     placeholder="Minimum 3 rows"
                 />
-                <select name="format" form="someform">
+                <select
+                    name="format"
+                    form="someform"
+                    onChange={(event, value) => {
+                        console.log(event.target.value);
+                        setFormat(event.target.value);
+                    }}
+                >
                     <option value="application/json">json</option>
-                    <option value="application/html">html</option>
+                    <option value="text/html">html</option>
                     <option value="text/turtle">turtle</option>
                     <option value="application/xml">xml</option>
                     <option value="application/rdf+xml">rdf/xml</option>
@@ -226,7 +237,34 @@ export default function Editor({ history }) {
                     <option value="text/csv">csv</option>
                     <option value="text/tab-separated-values">tsv</option>
                 </select>
-                <input type="submit" />
+                <input
+                    type="submit"
+                    onClick={() => {
+                        console.log('yes clicked');
+                        if (checkboxVal) {
+                            dispatch(saveQueryAction(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryNameVal));
+                        }
+                    }}
+                />
+                {loggedIn && (
+                    <>
+                        <input
+                            type="text"
+                            value={queryNameVal}
+                            onChange={event => {
+                                setQueryNameVal(event.target.value);
+                            }}
+                        />
+                        <input
+                            type="checkbox"
+                            name="saveResults"
+                            value={checkboxVal}
+                            onChange={event => {
+                                setCheckboxVal(event.target.checked);
+                            }}
+                        />
+                    </>
+                )}
             </form>
 
             <ResizableBox
