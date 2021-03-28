@@ -47,7 +47,7 @@ export default function RegisterScreen({ history }) {
     };
 
     return (
-        <View style={{ backgroundColor: colors.background(10), flex: 1 }}>
+        <View style={{ height: '100vh', backgroundColor: colors.background(10), flex: 1 }}>
             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                 <View style={{ width: 400, padding: 20, backgroundColor: '#FFFFFF', boxShadow: '-10px 12px 15px -1px' + ' rgba(0,0,0,0.4)' }}>
                     <Text

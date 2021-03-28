@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { basicStyles } from 'styles';
 import { InputLabel } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { processQuery, saveQueryAction } from 'redux/actions/data.actions';
+import { processQuery, processQueryHTML, saveQueryAction } from 'redux/actions/data.actions';
 import { logoutAction } from 'redux/actions/auth.actions';
 
 import { themes } from 'static';
@@ -13,6 +13,7 @@ import 'react-resizable/css/styles.css';
 import View from 'module/components/View';
 import Text from 'module/components/Text';
 import { tokenHelper } from 'services/tokenHelpers';
+import { stateIsLoaded } from 'services/stateHelpers';
 
 var CodeMirror = require('react-codemirror');
 // import { UnControlled as CodeMirror } from 'react-codemirror2';
@@ -24,9 +25,18 @@ require('codemirror/lib/codemirror.css');
 themes.forEach(theme => {
     require(`codemirror/theme/${theme}.css`);
 });
+var FileSaver = require('file-saver');
+var HtmlToReactParser = require('html-to-react').Parser;
+var htmlToReactParser = new HtmlToReactParser();
 
 require('codemirror/mode/sparql/sparql');
 require('codemirror/mode/javascript/javascript');
+require('codemirror/mode/xml/xml');
+require('codemirror/mode/turtle/turtle');
+require('codemirror/mode/ntriples/ntriples');
+require('codemirror/mode/htmlmixed/htmlmixed');
+
+// require('codemirror/mode/json/json');
 
 const SparqlParser = require('sparqljs').Parser;
 // const SparqlParser = require('module/screens/sparql').Parser;
@@ -39,23 +49,66 @@ export default function Editor({ history }) {
     const [graphNameIri, setGraphNameIri] = useState(`http://dbpedia.org`);
     const [timeOutVal, setTimeoutVal] = useState(30000);
     const [format, setFormat] = useState('application/json');
+    const [responseWindowFormat, setResponseWindowFormat] = useState('javascript');
+
     const [checkboxVal, setCheckboxVal] = useState(false);
     const [queryNameVal, setQueryNameVal] = useState('Untitled');
+    const [previewType, setPreviewType] = useState('response');
 
     const authState = useSelector(state => state.auth);
+    const queryState = useSelector(state => state.query);
+    const queryStateHTML = useSelector(state => state.queryHTML);
+
     const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
 
+    const formatToCodeMirrorMode = {
+        'application/json': 'javascript',
+        'text/html': 'xml',
+        'text/turtle': 'turtle',
+        'application/xml': 'xml',
+        'application/rdf+xml': 'xml',
+        'application/n-triples': 'ntriples',
+        'text/csv': 'csv',
+        'text/tab-separated-values': 'tsv',
+    };
+
     useEffect(() => {
-        console.log('it execs');
+        // console.log('it execs');
         setLoggedIn(tokenHelper.auth());
     }, [authState]);
 
+    useEffect(() => {
+        // console.log('it execs');
+        // setLoggedIn(tokenHelper.auth());
+        console.log(queryState);
+        if (stateIsLoaded(queryState)) {
+            // codeMirrorRef2.current.codeMirror.setValue(queryState?.data?.data);
+            if (codeMirrorRef2.current) {
+                codeMirrorRef2.current.codeMirror.setValue(setupDataForResponseWindow(queryState?.data?.data));
+            }
+            console.log(queryState?.data?.data);
+        }
+    }, [queryState]);
+
     const [theme, setTheme] = useState(`default`);
     const [width, setWidth] = useState(200);
-    const [height, setHeight] = useState(200);
+    const [responseWindowHeight, setResponseWindowHeight] = useState(200);
     const [editor, setEditor] = useState(null);
     const [currentMarker, setCurrentMarker] = useState(null);
     const codeMirrorRef = useRef(null);
+    const codeMirrorRef2 = useRef(null);
+
+    function setupDataForResponseWindow(data) {
+        switch (format) {
+            case 'application/json':
+                return JSON.stringify(data, null, ' ');
+            // case 'text/html':
+            //     return JSON.stringify(data, 4, ' ');
+            default:
+                return data;
+        }
+    }
+
     function makeMarker(msg) {
         console.log('maker called');
         const marker = document.createElement('div');
@@ -70,6 +123,14 @@ export default function Editor({ history }) {
         return marker;
     }
 
+    function encodeXML(xmlstr) {
+        return xmlstr.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
+
+    function onResponseWindowResize(data) {
+        setResponseWindowHeight(data.size.height);
+    }
+
     function validator(data) {
         if (currentMarker) {
             currentMarker.clear();
@@ -82,27 +143,16 @@ export default function Editor({ history }) {
 
             // var parsedQuery = parser.parse(data);
         } catch (e) {
-            console.log(e.message);
+            // console.log(e.message);
             let splitted = e.message.split(/\r?\n/);
-            console.log(splitted);
+            // console.log(splitted);
             if (splitted.length === 4) {
                 let splitFirstLine = splitted[0].split(' ');
                 let lineNumber = splitFirstLine[splitFirstLine.length - 1];
                 lineNumber = lineNumber.substring(0, lineNumber.length - 1);
-                console.log('line number is', lineNumber);
+                // console.log('line number is', lineNumber);
                 let mistakeStart = splitted[2].length;
-                // let incorrectness = splitted[1].substring(mistakeStart, splitted[1].length - 1);
-
-                // let relativeCharStartIndex = mistakeStart;
-                // if (incorrectness.contains('...')) {
-                //     relativeCharStartIndex = relativeCharStartIndex - 3;
-                // }
-                // incorrectness.replace('...', '');
                 let incorrectnessStart = splitted[1].replace('...', '');
-                // incorrectness = incorrectness.substring(0, 5);
-                // incorrectness = incorrectness.trim();
-
-                // console.log(incorrectness);
 
                 let message = splitted[3];
 
@@ -118,17 +168,9 @@ export default function Editor({ history }) {
                 for (let i = 0; i < +lineNumber - 1; i++) {
                     prevInputSize += codeMirror.lineInfo(i).text.length;
                 }
-
-                // let indexOfStartString = fullLineText.indexOf(incorrectness);
-
                 let indexOfStartString = data.replace(/\n/g, '').indexOf(incorrectnessStart);
 
-                console.log('Finding index before transofrmations ', indexOfStartString);
-
-                // let indexOfStartStringStart = data.replace(/\n/g, '').indexOf(incorrectnessStart);
-
                 indexOfStartString = indexOfStartString - prevInputSize + (mistakeStart > 20 ? mistakeStart - 4 : mistakeStart - 1);
-                console.log('After', indexOfStartString, mistakeStart);
 
                 let errorChars = {};
 
@@ -155,7 +197,7 @@ export default function Editor({ history }) {
         <View style={{ ...basicStyles.paddingContainer, flex: 1 }}>
             <Text> SPARQL Editor </Text>
             {loggedIn && (
-                <View>
+                <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
                     <Button
                         onClick={() => {
                             // dispatch(lo);
@@ -179,7 +221,18 @@ export default function Editor({ history }) {
                 </View>
             )}
             {/* <FormControl style={{ flex: 1 }}> */}
-            <form action="http://localhost:8080/sparql" id="someform" method={'POST'}>
+            <form
+                action={encodeURI(`http://localhost:8080/sparql`)}
+                id="someform"
+                method={'GET'}
+                target="blank"
+                onSubmit={eve => {
+                    eve.preventDefault();
+                    dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal));
+                    dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal));
+                    setResponseWindowFormat(formatToCodeMirrorMode[format]);
+                }}
+            >
                 Url:{' '}
                 <input
                     type="text"
@@ -290,17 +343,8 @@ export default function Editor({ history }) {
                 }
             >
                 <CodeMirror
+                    className={'code-editor'}
                     ref={codeMirrorRef}
-                    onRenderLine={(editor, lineHandle, element) => {
-                        // console.log(element);
-                    }}
-                    // editorDidMount={editorRef => {
-                    //     setEditor(editorRef);
-                    // }}
-                    // codeMirrorInstance={editorInstance => {
-                    //     setEditor(editorInstance);
-                    // }}
-
                     style={{ height: 250 }}
                     value={sparqlQueryVal}
                     lint={true}
@@ -308,11 +352,6 @@ export default function Editor({ history }) {
                         setSparqlQueryVal(data);
                         validator(data);
                     }}
-                    // onChange={(editor, data, value) => {
-                    //     // setSparqlQueryVal();
-                    //     // console.log(event);
-                    //     setSparqlQueryVal(value);
-                    // }}
                     options={{
                         lineNumbers: true,
                         lint: true,
@@ -322,6 +361,108 @@ export default function Editor({ history }) {
                     }}
                 />
             </ResizableBox>
+            <View style={{ height: 50 }}>
+                <View style={{ flexDirection: 'row' }}>
+                    <Button
+                        onClick={() => {
+                            setPreviewType('response');
+                        }}
+                    >
+                        {' '}
+                        Response Preview{' '}
+                    </Button>{' '}
+                    <Button
+                        onClick={() => {
+                            setPreviewType('table');
+                        }}
+                    >
+                        {' '}
+                        Table{' '}
+                    </Button>
+                </View>
+            </View>
+            <View>
+                {previewType === 'response' && (
+                    <ResizableBox
+                        className="custom-box box"
+                        width={'100%'}
+                        height={responseWindowHeight}
+                        style={{ border: '1px solid #DDDDDD', marginTop: 20 }}
+                        handleSize={[8, 8]}
+                        resizeHandles={['s']}
+                        onResize={(ev, data) => {
+                            // console.log(data.size.height);
+                            onResponseWindowResize(data);
+                        }}
+                        handle={
+                            <div
+                                resizeHandle={'s'}
+                                style={{
+                                    width: '25%',
+                                    height: 5,
+                                    marginTop: 5,
+                                    background: 'gray',
+                                    cursor: 'row-resize',
+                                    marginLeft: '50%',
+                                    transform: 'translateX(-50%)',
+                                }}
+                            ></div>
+                        }
+                    >
+                        <CodeMirror
+                            ref={codeMirrorRef2}
+                            style={{ height: 250, width: '100%' }}
+                            value={setupDataForResponseWindow(queryState?.data?.data)}
+                            lint={true}
+                            onChange={data => {}}
+                            options={{
+                                lineNumbers: true,
+                                lint: true,
+                                mode: responseWindowFormat,
+                                theme: theme,
+                                htmlMode: true,
+
+                                gutters: ['error'],
+                            }}
+                        />
+                    </ResizableBox>
+                )}
+                {previewType === 'table' && (
+                    <>
+                        <Text> Table</Text>
+                        <ResizableBox
+                            className="custom-box box"
+                            width={'100%'}
+                            height={responseWindowHeight}
+                            style={{ border: '1px solid #DDDDDD', marginTop: 20 }}
+                            handleSize={[8, 8]}
+                            resizeHandles={['s']}
+                            onResize={(ev, data) => {
+                                onResponseWindowResize(data);
+                            }}
+                            handle={
+                                <div
+                                    resizeHandle={'s'}
+                                    style={{
+                                        width: '25%',
+                                        height: 5,
+                                        marginTop: 5,
+                                        background: 'gray',
+                                        cursor: 'row-resize',
+                                        marginLeft: '50%',
+                                        transform: 'translateX(-50%)',
+                                        marginBottom: 20,
+                                    }}
+                                ></div>
+                            }
+                        >
+                            <View style={{ height: '100%', width: '100%', overflow: 'auto' }}>
+                                {queryStateHTML?.data?.data && htmlToReactParser.parse(queryStateHTML?.data?.data)}
+                            </View>
+                        </ResizableBox>
+                    </>
+                )}
+            </View>
 
             <div style={{ marginTop: 20 }}>
                 <select
@@ -339,6 +480,14 @@ export default function Editor({ history }) {
                     })}
                 </select>
             </div>
+            <button
+                onClick={() => {
+                    var blob = new Blob([queryState.data.data], { type: `${format};charset=utf-8` });
+                    FileSaver.saveAs(blob, queryNameVal);
+                }}
+            >
+                Download
+            </button>
             {/* <button
                 onClick={() => {
                     validator();

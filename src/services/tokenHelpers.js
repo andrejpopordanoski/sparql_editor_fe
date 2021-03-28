@@ -1,7 +1,7 @@
 export const tokenHelper = {
     auth: () => {
         let persist = localStorage.getItem('persist:sparql-editor');
-        console.log(persist, 'here');
+        // console.log(persist, 'here');
         if (persist) {
             try {
                 let access_token = JSON.parse(JSON.parse(persist).auth).data.data.access_token;
