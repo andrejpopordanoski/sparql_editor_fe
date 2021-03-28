@@ -14,21 +14,20 @@ import View from 'module/components/View';
 import Text from 'module/components/Text';
 import { tokenHelper } from 'services/tokenHelpers';
 import { stateIsLoaded } from 'services/stateHelpers';
-
-var CodeMirror = require('react-codemirror');
-// import { UnControlled as CodeMirror } from 'react-codemirror2';
-
-// var ErrorStackParser = require('error-stack-parser');
-
-require('codemirror/lib/codemirror.css');
-
-themes.forEach(theme => {
-    require(`codemirror/theme/${theme}.css`);
-});
-var FileSaver = require('file-saver');
-var HtmlToReactParser = require('html-to-react').Parser;
-var htmlToReactParser = new HtmlToReactParser();
-
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/sql-hint';
+import 'codemirror/addon/hint/show-hint.css'; // without this css hints won't show
+import 'codemirror/addon/search/match-highlighter';
+import 'codemirror/addon/search/matchesonscrollbar';
+import 'codemirror/addon/search/searchcursor';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/brace-fold';
+import 'codemirror/addon/fold/xml-fold';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/fold/markdown-fold';
+import 'codemirror/addon/fold/comment-fold';
+import 'codemirror/addon/fold/foldgutter.css';
 require('codemirror/mode/sparql/sparql');
 require('codemirror/mode/javascript/javascript');
 require('codemirror/mode/xml/xml');
@@ -36,10 +35,16 @@ require('codemirror/mode/turtle/turtle');
 require('codemirror/mode/ntriples/ntriples');
 require('codemirror/mode/htmlmixed/htmlmixed');
 
-// require('codemirror/mode/json/json');
+var CodeMirror = require('react-codemirror');
+require('codemirror/lib/codemirror.css');
+themes.forEach(theme => {
+    require(`codemirror/theme/${theme}.css`);
+});
+var FileSaver = require('file-saver');
+var HtmlToReactParser = require('html-to-react').Parser;
+var htmlToReactParser = new HtmlToReactParser();
 
 const SparqlParser = require('sparqljs').Parser;
-// const SparqlParser = require('module/screens/sparql').Parser;
 const parser = new SparqlParser();
 
 export default function Editor({ history }) {
@@ -58,6 +63,14 @@ export default function Editor({ history }) {
     const authState = useSelector(state => state.auth);
     const queryState = useSelector(state => state.query);
     const queryStateHTML = useSelector(state => state.queryHTML);
+
+    const [theme, setTheme] = useState(`default`);
+    const [width, setWidth] = useState(200);
+    const [responseWindowHeight, setResponseWindowHeight] = useState(200);
+    const [editor, setEditor] = useState(null);
+    const [currentMarker, setCurrentMarker] = useState(null);
+    const codeMirrorRef = useRef(null);
+    const codeMirrorRef2 = useRef(null);
 
     const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
 
@@ -90,14 +103,6 @@ export default function Editor({ history }) {
         }
     }, [queryState]);
 
-    const [theme, setTheme] = useState(`default`);
-    const [width, setWidth] = useState(200);
-    const [responseWindowHeight, setResponseWindowHeight] = useState(200);
-    const [editor, setEditor] = useState(null);
-    const [currentMarker, setCurrentMarker] = useState(null);
-    const codeMirrorRef = useRef(null);
-    const codeMirrorRef2 = useRef(null);
-
     function setupDataForResponseWindow(data) {
         switch (format) {
             case 'application/json':
@@ -123,10 +128,6 @@ export default function Editor({ history }) {
         return marker;
     }
 
-    function encodeXML(xmlstr) {
-        return xmlstr.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-    }
-
     function onResponseWindowResize(data) {
         setResponseWindowHeight(data.size.height);
     }
@@ -139,9 +140,7 @@ export default function Editor({ history }) {
             codeMirrorRef.current.codeMirror.clearGutter('error');
         }
         try {
-            var parsedQuery = parser.parse(data);
-
-            // var parsedQuery = parser.parse(data);
+            parser.parse(data);
         } catch (e) {
             // console.log(e.message);
             let splitted = e.message.split(/\r?\n/);
@@ -153,25 +152,17 @@ export default function Editor({ history }) {
                 // console.log('line number is', lineNumber);
                 let mistakeStart = splitted[2].length;
                 let incorrectnessStart = splitted[1].replace('...', '');
-
                 let message = splitted[3];
-
                 codeMirrorRef.current.codeMirror.setGutterMarker(+lineNumber - 1, 'error', makeMarker(message));
-
                 let codeMirror = codeMirrorRef.current.codeMirror;
-
                 let lineTokens = codeMirror.getLineTokens(+lineNumber - 1);
-
-                let fullLineText = codeMirror.lineInfo(+lineNumber - 1).text;
                 let prevInputSize = 0;
-                let prevLines = 0;
+
                 for (let i = 0; i < +lineNumber - 1; i++) {
                     prevInputSize += codeMirror.lineInfo(i).text.length;
                 }
                 let indexOfStartString = data.replace(/\n/g, '').indexOf(incorrectnessStart);
-
                 indexOfStartString = indexOfStartString - prevInputSize + (mistakeStart > 20 ? mistakeStart - 4 : mistakeStart - 1);
-
                 let errorChars = {};
 
                 lineTokens.forEach(({ start, end }) => {
@@ -209,7 +200,7 @@ export default function Editor({ history }) {
                 </View>
             )}
             {!loggedIn && (
-                <View>
+                <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
                     <Button
                         onClick={() => {
                             // dispatch(lo);
@@ -217,6 +208,14 @@ export default function Editor({ history }) {
                         }}
                     >
                         Login
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            // dispatch(lo);
+                            history.replace('/register');
+                        }}
+                    >
+                        Register
                     </Button>
                 </View>
             )}
@@ -357,27 +356,28 @@ export default function Editor({ history }) {
                         lint: true,
                         mode: 'sparql',
                         theme: theme,
-                        gutters: ['error'],
+                        gutters: ['error', 'CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+                        foldGutter: true,
+                        lineWrapping: true,
+                        // gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
                     }}
                 />
             </ResizableBox>
-            <View style={{ height: 50 }}>
+            <View style={{ marginTop: 20 }}>
                 <View style={{ flexDirection: 'row' }}>
                     <Button
                         onClick={() => {
                             setPreviewType('response');
                         }}
                     >
-                        {' '}
-                        Response Preview{' '}
-                    </Button>{' '}
+                        Response Preview
+                    </Button>
                     <Button
                         onClick={() => {
                             setPreviewType('table');
                         }}
                     >
-                        {' '}
-                        Table{' '}
+                        Table
                     </Button>
                 </View>
             </View>
@@ -385,7 +385,7 @@ export default function Editor({ history }) {
                 {previewType === 'response' && (
                     <ResizableBox
                         className="custom-box box"
-                        width={'100%'}
+                        // width={100}
                         height={responseWindowHeight}
                         style={{ border: '1px solid #DDDDDD', marginTop: 20 }}
                         handleSize={[8, 8]}
@@ -396,7 +396,6 @@ export default function Editor({ history }) {
                         }}
                         handle={
                             <div
-                                resizeHandle={'s'}
                                 style={{
                                     width: '25%',
                                     height: 5,
@@ -421,19 +420,20 @@ export default function Editor({ history }) {
                                 mode: responseWindowFormat,
                                 theme: theme,
                                 htmlMode: true,
+                                lineWrapping: true,
 
-                                gutters: ['error'],
+                                gutters: ['error', 'CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+                                foldGutter: true,
                             }}
                         />
                     </ResizableBox>
                 )}
                 {previewType === 'table' && (
                     <>
-                        <Text> Table</Text>
                         <ResizableBox
                             className="custom-box box"
-                            width={'100%'}
                             height={responseWindowHeight}
+                            // width={100}
                             style={{ border: '1px solid #DDDDDD', marginTop: 20 }}
                             handleSize={[8, 8]}
                             resizeHandles={['s']}
@@ -442,7 +442,6 @@ export default function Editor({ history }) {
                             }}
                             handle={
                                 <div
-                                    resizeHandle={'s'}
                                     style={{
                                         width: '25%',
                                         height: 5,
@@ -467,9 +466,6 @@ export default function Editor({ history }) {
             <div style={{ marginTop: 20 }}>
                 <select
                     onChange={event => {
-                        console.log(event.target.value);
-                        // let path = 'codemirror/theme/' + event.target.value + '.css';
-                        // require(path);
                         setTheme(event.target.value);
                     }}
                     id="select"
@@ -488,29 +484,6 @@ export default function Editor({ history }) {
             >
                 Download
             </button>
-            {/* <button
-                onClick={() => {
-                    validator();
-                }}
-            >
-                {' '}
-                validate{' '}
-            </button> */}
-
-            {/* <InputLabel> Default Data Set Name (Graph IRI)</InputLabel>
-            <OutlinedInput />
-
-            <Button
-                variant="contained"
-                color="secondary"
-                onClick={() => {
-                    console.log('clicking');
-                    dispatch(processQuery(url, sparqlQueryVal));
-                }}
-            >
-                Submit
-            </Button> */}
-            {/* </FormControl> */}
         </View>
     );
 }

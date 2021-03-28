@@ -7,16 +7,24 @@
 
 .error-marker {
     color: black;
-    width: 10px !important;
-    background-color: #ff0000;
+    width: 15px !important;
+    height: 15px !important;
+
+    background: url('assets/icons/err.png');
+    background-size: cover; /* Resize the background image to cover the entire container */
+
+    /* background-color: #ff0000; */
 }
 
 .error-marker .error-message {
     display: none;
     position: absolute;
-    background-color: #ddd;
-    border: 1px solid #999;
-    padding: 6px;
+    background-color: rgba(221, 221, 221, 0.894);
+    border: 1px solid rgba(190, 188, 188, 0.812);
+    font-family: Helvetica-Regular;
+    border-radius: 10px;
+    font-size: 12px;
+    padding: 12px;
     width: 140px;
     left: 15px;
     top: -1em;
@@ -27,8 +35,8 @@
 }
 
 .syntax_error {
-    border-bottom: 1px dashed red;
-    color: red !important;
+    border-bottom: 1px dashed rgb(186, 18, 18);
+    color: rgb(186, 18, 18) !important;
 }
 
 .custom-box {
@@ -38,4 +46,22 @@
 .code-editor {
     font-family: Helvetica-Regular;
     font-size: 16px;
+}
+
+.CodeMirror-foldmarker {
+    /* font-family: arial; */
+}
+.CodeMirror-foldgutter {
+    width: 0.7em;
+}
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded {
+    color: #555;
+    cursor: pointer;
+}
+.CodeMirror-foldgutter-open:after {
+    content: '\25BE';
+}
+.CodeMirror-foldgutter-folded:after {
+    content: '\25B8';
 }

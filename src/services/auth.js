@@ -1,4 +1,4 @@
-const PERSIST_KEY = 'persist:fitness';
+const PERSIST_KEY = 'persist:sparql-editor';
 
 const authService = {
     _user: null,
