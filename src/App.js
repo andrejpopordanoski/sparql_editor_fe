@@ -10,6 +10,7 @@ import { palette } from 'styles/pallete';
 import Login from 'module/screens/Login';
 import RegisterScreen from 'module/screens/Register';
 import { tokenHelper } from 'services/tokenHelpers';
+import EditorWrapper from 'module/screens/EditorWrapper';
 
 const theme = createMuiTheme({
     palette: palette,
@@ -28,7 +29,7 @@ function App() {
                             {!loggedIn ? <Redirect to="/login" /> : <Redirect to="/sparql" />}
                         </Route>
 
-                        <Route path="/sparql" exact component={Editor} />
+                        <Route path="/sparql" exact component={EditorWrapper} />
                         <Route path="/login" exact component={Login} />
                         <Route path="/register" exact component={RegisterScreen} />
                     </ThemeProvider>

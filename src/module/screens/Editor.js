@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { basicStyles } from 'styles';
 import { InputLabel } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { processQuery, processQueryHTML, saveQueryAction } from 'redux/actions/data.actions';
+import { getAllQueriesAction, processQuery, processQueryHTML, saveQueryAction } from 'redux/actions/data.actions';
 import { logoutAction } from 'redux/actions/auth.actions';
 
 import { themes } from 'static';
@@ -28,6 +28,7 @@ import 'codemirror/addon/fold/indent-fold';
 import 'codemirror/addon/fold/markdown-fold';
 import 'codemirror/addon/fold/comment-fold';
 import 'codemirror/addon/fold/foldgutter.css';
+import { useTabConfig } from './useTabConfig';
 require('codemirror/mode/sparql/sparql');
 require('codemirror/mode/javascript/javascript');
 require('codemirror/mode/xml/xml');
@@ -47,28 +48,63 @@ var htmlToReactParser = new HtmlToReactParser();
 const SparqlParser = require('sparqljs').Parser;
 const parser = new SparqlParser();
 
-export default function Editor({ history }) {
+export default function Editor({ history, style, currentTab, index }) {
+    const {
+        sparqlQueryVal,
+        setSparqlQueryVal,
+        url,
+        setUrl,
+        graphNameIri,
+        setGraphNameIri,
+        timeOutVal,
+        setTimeoutVal,
+        format,
+        setFormat,
+        responseWindowFormat,
+        setResponseWindowFormat,
+        currentlyChosenOlderQuery,
+        setCurrentlyChosenOlderQuery,
+        checkboxVal,
+        setCheckboxVal,
+        queryNameVal,
+        setQueryNameVal,
+        previewType,
+        setPreviewType,
+        theme,
+        setTheme,
+        responseWindowHeight,
+        setResponseWindowHeight,
+        currentMarker,
+        setCurrentMarker,
+        responseWindowResponse,
+        setResponseWindowResponse,
+        setResponseWindowResponseTable,
+        responseWindowResponseTable,
+    } = useTabConfig();
+
+    // const [sparqlQueryVal, setSparqlQueryVal] = useState(`select distinct ?Concept where {[] a ?Concept} LIMIT 10`);
+    // const [url, setUrl] = useState(`http://dbpedia.org/sparql`);
+    // const [graphNameIri, setGraphNameIri] = useState(`http://dbpedia.org`);
+    // const [timeOutVal, setTimeoutVal] = useState(30000);
+    // const [format, setFormat] = useState('application/json');
+    // const [responseWindowFormat, setResponseWindowFormat] = useState('javascript');
+    // const [currentlyChosenOlderQuery, setCurrentlyChosenOlderQuery] = useState(null);
+    // const [checkboxVal, setCheckboxVal] = useState(false);
+    // const [queryNameVal, setQueryNameVal] = useState('Untitled');
+    // const [previewType, setPreviewType] = useState('response');
+    // const authState = useSelector(state => state.auth);
+    // const queryState = useSelector(state => state.query);
+    // const queryStateHTML = useSelector(state => state.queryHTML);
+    // const allQueries = useSelector(state => state.allQueries);
+    // const [theme, setTheme] = useState(`default`);
+    // const [responseWindowHeight, setResponseWindowHeight] = useState(200);
+    // const [currentMarker, setCurrentMarker] = useState(null);
+
     const dispatch = useDispatch();
-    const [sparqlQueryVal, setSparqlQueryVal] = useState(`select distinct ?Concept where {[] a ?Concept} LIMIT 10`);
-    const [url, setUrl] = useState(`http://dbpedia.org/sparql`);
-    const [graphNameIri, setGraphNameIri] = useState(`http://dbpedia.org`);
-    const [timeOutVal, setTimeoutVal] = useState(30000);
-    const [format, setFormat] = useState('application/json');
-    const [responseWindowFormat, setResponseWindowFormat] = useState('javascript');
-
-    const [checkboxVal, setCheckboxVal] = useState(false);
-    const [queryNameVal, setQueryNameVal] = useState('Untitled');
-    const [previewType, setPreviewType] = useState('response');
-
     const authState = useSelector(state => state.auth);
     const queryState = useSelector(state => state.query);
     const queryStateHTML = useSelector(state => state.queryHTML);
-
-    const [theme, setTheme] = useState(`default`);
-    const [width, setWidth] = useState(200);
-    const [responseWindowHeight, setResponseWindowHeight] = useState(200);
-    const [editor, setEditor] = useState(null);
-    const [currentMarker, setCurrentMarker] = useState(null);
+    const allQueries = useSelector(state => state.allQueries);
     const codeMirrorRef = useRef(null);
     const codeMirrorRef2 = useRef(null);
 
@@ -86,9 +122,46 @@ export default function Editor({ history }) {
     };
 
     useEffect(() => {
+        if (loggedIn) {
+            dispatch(getAllQueriesAction());
+        }
+    }, []);
+
+    useEffect(() => {
         // console.log('it execs');
         setLoggedIn(tokenHelper.auth());
     }, [authState]);
+
+    useEffect(() => {
+        if (currentlyChosenOlderQuery && currentTab === index) {
+            setSparqlQueryVal(currentlyChosenOlderQuery.queryString);
+
+            setUrl(currentlyChosenOlderQuery.url);
+            if (codeMirrorRef.current) {
+                codeMirrorRef.current.codeMirror.setValue(currentlyChosenOlderQuery.queryString);
+                // codeMirrorRef.current.codeMirror.setValue(sparqlQueryVal);
+            }
+
+            setGraphNameIri(currentlyChosenOlderQuery.defaultDatasetName);
+
+            setTimeoutVal(currentlyChosenOlderQuery.timeout);
+
+            setFormat(currentlyChosenOlderQuery.format);
+        }
+    }, [currentlyChosenOlderQuery]);
+
+    useEffect(() => {
+        if (codeMirrorRef2.current) {
+            codeMirrorRef2.current.codeMirror.setValue(setupDataForResponseWindow(queryState?.data?.data));
+        }
+    }, [responseWindowResponse]);
+
+    // useEffect(() => {
+    //     if (codeMirrorRef.current) {
+    //         // codeMirrorRef.current.codeMirror.setValue(currentlyChosenOlderQuery.queryString);
+    //         codeMirrorRef.current.codeMirror.setValue(sparqlQueryVal);
+    //     }
+    // }, [sparqlQueryVal]);
 
     useEffect(() => {
         // console.log('it execs');
@@ -96,10 +169,11 @@ export default function Editor({ history }) {
         console.log(queryState);
         if (stateIsLoaded(queryState)) {
             // codeMirrorRef2.current.codeMirror.setValue(queryState?.data?.data);
-            if (codeMirrorRef2.current) {
-                codeMirrorRef2.current.codeMirror.setValue(setupDataForResponseWindow(queryState?.data?.data));
-            }
-            console.log(queryState?.data?.data);
+            // if (codeMirrorRef2.current) {
+            //     codeMirrorRef2.current.codeMirror.setValue(setupDataForResponseWindow(queryState?.data?.data));
+            // }
+            // console.log(queryState?.data?.data);
+            setResponseWindowResponse(setupDataForResponseWindow(queryState?.data?.data));
         }
     }, [queryState]);
 
@@ -184,10 +258,12 @@ export default function Editor({ history }) {
         }
     }
 
+    console.log(currentlyChosenOlderQuery?.queryName);
+
     return (
-        <View style={{ ...basicStyles.paddingContainer, flex: 1 }}>
+        <View style={{ ...basicStyles.paddingContainer, flex: 1, ...style }}>
             <Text> SPARQL Editor </Text>
-            {loggedIn && (
+            {/* {loggedIn && (
                 <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
                     <Button
                         onClick={() => {
@@ -218,7 +294,7 @@ export default function Editor({ history }) {
                         Register
                     </Button>
                 </View>
-            )}
+            )} */}
             {/* <FormControl style={{ flex: 1 }}> */}
             <form
                 action={encodeURI(`http://localhost:8080/sparql`)}
@@ -289,6 +365,20 @@ export default function Editor({ history }) {
                     <option value="text/csv">csv</option>
                     <option value="text/tab-separated-values">tsv</option>
                 </select>
+                {allQueries?.data?.data && (
+                    <select
+                        onChange={(event, value) => {
+                            // console.log(event.target.value);
+                            console.log(JSON.parse(event.target.value));
+                            setCurrentlyChosenOlderQuery(JSON.parse(event.target.value));
+                        }}
+                    >
+                        <option el={null}>default</option>
+                        {allQueries?.data?.data.map(el => {
+                            return <option value={JSON.stringify(el)}>{el.queryName} </option>;
+                        })}
+                    </select>
+                )}
                 <input
                     type="submit"
                     onClick={() => {
@@ -411,7 +501,7 @@ export default function Editor({ history }) {
                         <CodeMirror
                             ref={codeMirrorRef2}
                             style={{ height: 250, width: '100%' }}
-                            value={setupDataForResponseWindow(queryState?.data?.data)}
+                            value={setupDataForResponseWindow(responseWindowResponse)}
                             lint={true}
                             onChange={data => {}}
                             options={{
@@ -421,7 +511,7 @@ export default function Editor({ history }) {
                                 theme: theme,
                                 htmlMode: true,
                                 lineWrapping: true,
-
+                                readOnly: true,
                                 gutters: ['error', 'CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
                                 foldGutter: true,
                             }}

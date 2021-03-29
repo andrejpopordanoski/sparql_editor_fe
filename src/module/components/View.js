@@ -1,3 +1,7 @@
-export default function View({ children, style }) {
-    return <div style={{ minHeight: 0, display: 'flex', flexDirection: 'column', ...style }}>{children}</div>;
+export default function View({ children, style, hidden }) {
+    return (
+        <div hidden={hidden} style={{ minHeight: 0, display: 'flex', flexDirection: 'column', ...style }}>
+            {children}
+        </div>
+    );
 }
