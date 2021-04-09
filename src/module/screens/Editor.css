@@ -39,10 +39,6 @@
     color: rgb(186, 18, 18) !important;
 }
 
-.custom-box {
-    width: calc(100vw - 50px);
-}
-
 .code-editor {
     font-family: Helvetica-Regular;
     font-size: 16px;
@@ -76,10 +72,71 @@
     background-size: 50% 2px, 2px 50%; /*thickness = 2px, length = 50% (25px)*/
     background-repeat: no-repeat;
 }
+.close {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
 
-.alt {
-    background: linear-gradient(rgb(143, 55, 55), rgb(143, 55, 55)), linear-gradient(rgb(143, 55, 55), rgb(143, 55, 55));
+    background: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff), #000;
     background-position: center;
     background-size: 50% 2px, 2px 50%; /*thickness = 2px, length = 50% (25px)*/
     background-repeat: no-repeat;
+    transform: rotate(45deg);
+}
+
+.alt2 {
+    background: linear-gradient(#188fffa9, #188fffa9), linear-gradient(#188fffa9, #188fffa9);
+    background-position: center;
+    background-size: 50% 2px, 2px 50%; /*thickness = 2px, length = 50% (25px)*/
+    background-repeat: no-repeat;
+}
+
+.alt {
+    background: linear-gradient(#188fff56, #188fff56), linear-gradient(#188fff56, #188fff56);
+    background-position: center;
+    background-size: 50% 2px, 2px 50%; /*thickness = 2px, length = 50% (25px)*/
+    background-repeat: no-repeat;
+}
+.plus-icon-wrapper {
+    border: 2px solid #188fffa9;
+    background-color: #188fff2c;
+}
+
+.alt2:hover {
+    background: linear-gradient(#188fff, #188fff), linear-gradient(#188fff, #188fff);
+    background-position: center;
+    background-size: 50% 3px, 3px 50%; /*thickness = 2px, length = 50% (25px)*/
+    background-repeat: no-repeat;
+}
+
+.alt:hover {
+    background: linear-gradient(#188fff, #188fff), linear-gradient(#188fff, #188fff);
+    background-position: center;
+    background-size: 50% 2px, 2px 50%; /*thickness = 2px, length = 50% (25px)*/
+    background-repeat: no-repeat;
+}
+
+.play-button-outer {
+    margin: 25% auto;
+    width: 10em;
+    height: 10em;
+    background-color: 'transparent';
+    cursor: pointer;
+}
+
+.play-button {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 2.5em 0 2.5em 5em;
+    border-color: transparent transparent transparent #000;
+    opacity: 0.75;
+}
+
+.play-button:hover {
+    opacity: 1;
+}
+.MuiTabs-root {
+    min-height: 35px !important;
+    height: 40px;
 }

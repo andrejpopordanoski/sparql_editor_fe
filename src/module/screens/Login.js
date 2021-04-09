@@ -1,11 +1,11 @@
 import { Button, ButtonBase, TextField } from '@material-ui/core';
 import Text from 'module/components/Text';
 import View from 'module/components/View';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, Redirect } from 'react-router-dom';
 import { passwordLoginAction } from 'redux/actions/auth.actions';
-import { stateIsLoaded } from 'services/stateHelpers';
+import { stateHasFailed, stateIsLoaded } from 'services/stateHelpers';
 import { tokenHelper } from 'services/tokenHelpers';
 import { basicStyles, colors, headers } from 'styles';
 
@@ -17,18 +17,27 @@ export default function Login({ history }) {
     const [passwordError, setPasswordError] = useState(false);
     const [usernameErrorMessage, setUsernameErrorMessage] = useState('');
     const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+    const [errorMsg, setErrorMsg] = useState(null);
     const authState = useSelector(state => state.auth);
 
     const dispatch = useDispatch();
 
     let loggedIn = tokenHelper.auth();
 
-    if (stateIsLoaded(authState) && loggedIn) {
-        return <Redirect to="/sparql" />;
-    }
+    useEffect(() => {
+        console.log('whadup', loggedIn);
+
+        if (stateHasFailed(authState)) {
+            setErrorMsg(authState.error);
+        }
+    }, [authState]);
     const toRegister = () => {
         history.replace('/register');
     };
+
+    if (stateIsLoaded(authState) && loggedIn) {
+        return <Redirect to="/sparql" />;
+    }
 
     const login = () => {
         console.log(username, password);
@@ -83,9 +92,24 @@ export default function Login({ history }) {
                     value={password}
                     style={{ marginTop: 30, marginLeft: 20, marginRight: 20 }}
                 ></TextField>
+                {errorMsg && (
+                    <View style={{ justifyContent: 'center', flex: 1, marginTop: 30 }}>
+                        <Text style={{ ...headers.H5(colors.error()), textAlign: 'center' }}>Something went wrong while processing the request </Text>
+                    </View>
+                )}
                 <Link onClick={toRegister} style={{ fontSize: 13, textAlign: 'center', marginTop: 30, ...headers.H5() }}>
                     Not registered yet? Click <Text>here to register</Text>.
                 </Link>
+                <View>
+                    <Link
+                        onClick={() => {
+                            history.replace('/sparql');
+                        }}
+                        style={{ fontSize: 13, textAlign: 'center', marginTop: 30, ...headers.H5() }}
+                    >
+                        Continue without logging in
+                    </Link>
+                </View>
                 <Button
                     variant="contained"
                     style={{

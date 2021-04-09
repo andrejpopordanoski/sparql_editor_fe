@@ -1,46 +1,84 @@
-import { makeStyles, Tab, Tabs, withStyles } from '@material-ui/core';
-
-export const AntTabs = withStyles({
+import { Button, makeStyles, Tab, Tabs, withStyles } from '@material-ui/core';
+import { useState } from 'react';
+import { palette } from 'styles/pallete';
+import View from './View';
+import AddIcon from '@material-ui/icons/Add';
+import { colors } from 'styles';
+export const AntTabs = withStyles(theme => ({
     root: {
         borderBottom: '1px solid #e8e8e8',
+        '&$selected': {
+            border: '2px solid black',
+        },
     },
     indicator: {
-        backgroundColor: '#1890ff',
+        backgroundColor: palette.secondary.main,
     },
-})(Tabs);
+}))(Tabs);
 
 export const AntTab = withStyles(theme => ({
     root: {
         textTransform: 'none',
-        minWidth: 72,
+        minWidth: 100,
+        padding: 0,
+        paddingLeft: 10,
+        height: 35,
+        minHeight: 35,
         fontWeight: theme.typography.fontWeightRegular,
-        marginRight: theme.spacing(4),
-        fontFamily: [
-            '-apple-system',
-            'BlinkMacSystemFont',
-            '"Segoe UI"',
-            'Roboto',
-            '"Helvetica Neue"',
-            'Arial',
-            'sans-serif',
-            '"Apple Color Emoji"',
-            '"Segoe UI Emoji"',
-            '"Segoe UI Symbol"',
-        ].join(','),
+        fontSize: 14,
+        // marginRight: theme.spacing(4),
+        fontFamily: ['Helvetica-Medium'].join(','),
         '&:hover': {
-            color: '#40a9ff',
+            color: palette.secondary.light,
             opacity: 1,
         },
         '&$selected': {
-            color: '#1890ff',
+            color: palette.secondary.main,
             fontWeight: theme.typography.fontWeightMedium,
         },
         '&:focus': {
-            color: '#40a9ff',
+            color: 'palette.secondary.light',
         },
     },
     selected: {},
-}))(props => <Tab disableRipple {...props} />);
+}))(props => {
+    const [closeButtonVisible, setCloseButtonVisible] = useState(false);
+    return (
+        <div
+            style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+                // backgroundColor: props.selected ? 'rgb(245,245,245)' : 'rgb(250,250,250)',
+                // borderLeft: '1px solid rgb(235,235,235)',
+                margin: 5,
+                marginBottom: 0,
+                border: `1px solid ${colors.backgroundLightGray2(50)}`,
+            }}
+            onMouseEnter={() => {
+                if (!closeButtonVisible) {
+                    setCloseButtonVisible(true);
+                }
+            }}
+            onMouseLeave={() => {
+                if (closeButtonVisible) {
+                    setCloseButtonVisible(false);
+                }
+            }}
+        >
+            <Tab disableRipple {...props} />
+
+            <div
+                style={{ width: 25, height: 25, opacity: closeButtonVisible ? 1 : 0 }}
+                onClick={() => {
+                    props.onClosePress();
+                }}
+                className="close alt2"
+            ></div>
+        </div>
+    );
+});
 
 export const useStyles = makeStyles(theme => ({
     root: {

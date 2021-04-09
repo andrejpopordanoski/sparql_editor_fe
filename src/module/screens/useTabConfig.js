@@ -6,7 +6,11 @@ import { tokenHelper } from 'services/tokenHelpers';
 
 export const useTabConfig = () => {
     const defaultNewTab = {
-        sparqlQueryVal: `select distinct ?Concept where {[] a ?Concept} LIMIT 10`,
+        sparqlQueryVal: `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT * WHERE {
+    ?sub ?pred ?obj .
+} LIMIT 10`,
         url: `http://dbpedia.org/sparql`,
         graphNameIri: `http://dbpedia.org`,
         timeOutVal: 30000,
@@ -17,157 +21,218 @@ export const useTabConfig = () => {
         queryNameVal: 'Untitled',
         previewType: 'response',
         theme: 'default',
-        responseWindowHeight: 200,
+        responseWindowHeight: 250,
         currentMarker: null,
+        windowResponse: '',
+        tableResponse: '',
     };
-    // const [tabs, setTabs] = useState([defaultNewTab]);
+    const [tabs, setTabs] = useState([defaultNewTab]);
+    const [currentTab, setCurrentTab] = useState(0);
+    const [tabsLabels, setTabsLabels] = useState(['Untitled']);
 
-    const [sparqlQueryVal, setSparqlQueryVal] = useState(defaultNewTab.sparqlQueryVal);
-    const [url, setUrl] = useState(defaultNewTab.url);
-    const [graphNameIri, setGraphNameIri] = useState(defaultNewTab.graphNameIri);
-    const [timeOutVal, setTimeoutVal] = useState(defaultNewTab.timeOutVal);
-    const [format, setFormat] = useState(defaultNewTab.format);
-    const [responseWindowFormat, setResponseWindowFormat] = useState(defaultNewTab.responseWindowFormat);
-    const [currentlyChosenOlderQuery, setCurrentlyChosenOlderQuery] = useState(defaultNewTab.currentlyChosenOlderQuery);
-    const [checkboxVal, setCheckboxVal] = useState(defaultNewTab.checkboxVal);
-    const [queryNameVal, setQueryNameVal] = useState(defaultNewTab.queryNameVal);
-    const [previewType, setPreviewType] = useState(defaultNewTab.previewType);
-    const [theme, setTheme] = useState(defaultNewTab.theme);
-    const [responseWindowHeight, setResponseWindowHeight] = useState(defaultNewTab.responseWindowHeight);
-    const [currentMarker, setCurrentMarker] = useState(defaultNewTab.currentMarker);
-    const [responseWindowResponse, setResponseWindowResponse] = useState('');
-    const [responseWindowResponseTable, setResponseWindowResponseTable] = useState('');
+    // const [sparqlQueryVal, setSparqlQueryValState] = useState(defaultNewTab.sparqlQueryVal);
+    // const [url, setUrlState] = useState(defaultNewTab.url);
+    // const [graphNameIri, setGraphNameIriState] = useState(defaultNewTab.graphNameIri);
+    // const [timeOutVal, setTimeoutValState] = useState(defaultNewTab.timeOutVal);
+    // const [format, setFormatState] = useState(defaultNewTab.format);
+    // const [responseWindowFormat, setResponseWindowFormatState] = useState(defaultNewTab.responseWindowFormat);
+    // const [currentlyChosenOlderQuery, setCurrentlyChosenOlderQueryState] = useState(defaultNewTab.currentlyChosenOlderQuery);
+    // const [checkboxVal, setCheckboxValState] = useState(defaultNewTab.checkboxVal);
+    // const [queryNameVal, setQueryNameValState] = useState(defaultNewTab.queryNameVal);
+    // const [previewType, setPreviewTypeState] = useState(defaultNewTab.previewType);
+    // const [theme, setThemeState] = useState(defaultNewTab.theme);
+    // const [responseWindowHeight, setResponseWindowHeightState] = useState(defaultNewTab.responseWindowHeight);
+    // const [currentMarker, setCurrentMarkerState] = useState(defaultNewTab.currentMarker);
+    // const [responseWindowResponse, setWindowResponseState] = useState('');
+    // const [responseWindowResponseTable, setWindowResponseTableState] = useState('');
 
-    // const [currentTab, setCurrentTab] = useState(0);
+    function createNewTab(newTab) {
+        if (!newTab) {
+            setTabsLabels([...tabsLabels, 'Untitled']);
+            tabs.push(defaultNewTab);
+        } else {
+            setTabsLabels([...tabsLabels, newTab?.queryNameVal || 'Untitled']);
+            let fullNewTab = {
+                ...defaultNewTab,
+                ...newTab,
+            };
+            tabs.push(fullNewTab);
+        }
+        setTabs([...tabs]);
+        setCurrentTab(tabs.length - 1);
+    }
 
-    // useEffect(() => {
-    //     tabs[currentTab] = {
-    //         ...tabs[currentTab],
-    //         sparqlQueryVal: sparqlQueryVal,
-    //     };
-    //     console.log(tabs);
-    //     setTabs([...tabs]);
-    // }, [sparqlQueryVal]);
+    function removeTab(tabIndex) {
+        if (tabs.length > 1) {
+            tabs.splice(tabIndex, 1);
+            tabsLabels.splice(tabIndex, 1);
+            if (currentTab >= tabIndex) {
+                setCurrentTab(currentTab - 1);
+            }
 
-    // useEffect(() => {
-    //     tabs[currentTab] = {
-    //         ...tabs[currentTab],
-    //         url: url,
-    //     };
-    //     setTabs([...tabs]);
-    // }, [url]);
+            setTabs([...tabs]);
+            setTabsLabels([...tabsLabels]);
+        }
+    }
 
-    // useEffect(() => {
-    //     tabs[currentTab] = {
-    //         ...tabs[currentTab],
-    //         graphNameIri: graphNameIri,
-    //     };
-    //     setTabs([...tabs]);
-    // }, [graphNameIri]);
+    function setSparqlQueryVal(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            sparqlQueryVal: data,
+        };
+        setTabs([...tabs]);
+    }
 
-    // useEffect(() => {
-    //     tabs[currentTab] = {
-    //         ...tabs[currentTab],
-    //         timeOutVal: timeOutVal,
-    //     };
-    //     setTabs([...tabs]);
-    // }, [timeOutVal]);
+    function setUrl(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            url: data,
+        };
+        setTabs([...tabs]);
+    }
 
-    // useEffect(() => {
-    //     tabs[currentTab] = {
-    //         ...tabs[currentTab],
-    //         format: format,
-    //     };
-    //     setTabs([...tabs]);
-    // }, [format]);
+    function setGraphNameIri(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            graphNameIri: data,
+        };
+        setTabs([...tabs]);
+    }
 
-    // // useEffect(() => {
-    // //     let tabChanged = {
-    // //         sparqlQueryVal: sparqlQueryVal,
-    // //         url: url,
-    // //         graphNameIri: graphNameIri,
-    // //         timeOutVal: timeOutVal,
-    // //         format: format,
-    // //         responseWindowFormat: responseWindowFormat,
-    // //         currentlyChosenOlderQuery: currentlyChosenOlderQuery,
-    // //         checkboxVal: checkboxVal,
-    // //         queryNameVal: queryNameVal,
-    // //         previewType: previewType,
-    // //         theme: theme,
-    // //         responseWindowHeight: responseWindowHeight,
-    // //         currentMarker: currentMarker,
-    // //     };
-    // //     tabs[currentTab] = tabChanged;
-    // //     console.log(tabs, currentTab);
-    // //     setTabs([...tabs]);
-    // // }, [
-    // //     sparqlQueryVal,
-    // //     url,
-    // //     graphNameIri,
-    // //     timeOutVal,
-    // //     format,
-    // //     responseWindowFormat,
-    // //     currentlyChosenOlderQuery,
-    // //     checkboxVal,
-    // //     queryNameVal,
-    // //     previewType,
-    // //     theme,
-    // //     responseWindowHeight,
-    // //     currentMarker,
-    // // ]);
+    function setTimeoutVal(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            timeOutVal: data,
+        };
+        setTabs([...tabs]);
+    }
 
-    // useEffect(() => {
-    //     // console.log(tabs[currentTab]?.sparqlQueryVal || defaultNewTab.sparqlQueryVal);
-    //     setSparqlQueryVal(tabs[currentTab]?.sparqlQueryVal || defaultNewTab.sparqlQueryVal);
-    //     setUrl(tabs[currentTab]?.url || defaultNewTab.url);
-    //     setGraphNameIri(tabs[currentTab]?.graphNameIri || defaultNewTab.graphNameIri);
-    //     setTimeoutVal(tabs[currentTab]?.timeOutVal || defaultNewTab.timeOutVal);
-    //     setFormat(tabs[currentTab]?.format || defaultNewTab.format);
-    //     setResponseWindowFormat(tabs[currentTab]?.responseWindowFormat || defaultNewTab.responseWindowFormat);
-    //     setCurrentlyChosenOlderQuery(tabs[currentTab]?.currentlyChosenOlderQuery || defaultNewTab.currentlyChosenOlderQuery);
-    //     setQueryNameVal(tabs[currentTab]?.queryNameVal || defaultNewTab.queryNameVal);
-    //     setPreviewType(tabs[currentTab]?.previewType || defaultNewTab.previewType);
-    //     setTheme(tabs[currentTab]?.theme || defaultNewTab.theme);
-    //     setResponseWindowHeight(tabs[currentTab]?.responseWindowHeight || defaultNewTab.responseWindowHeight);
-    //     setCurrentMarker(tabs[currentTab]?.currentMarker || defaultNewTab.currentMarker);
-    // }, [currentTab]);
+    function setFormat(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            format: data,
+        };
+        setTabs([...tabs]);
+    }
 
-    // useEffect(() => {
-    //     console.log('sth moved');
-    // });
+    function setResponseWindowFormat(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            responseWindowFormat: data,
+        };
+        setTabs([...tabs]);
+    }
+
+    function setCurrentlyChosenOlderQuery(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            currentlyChosenOlderQuery: data,
+        };
+        setTabs([...tabs]);
+    }
+
+    function setCheckboxVal(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            checkboxVal: data,
+        };
+        setTabs([...tabs]);
+    }
+
+    function setQueryNameVal(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            queryNameVal: data,
+        };
+        tabsLabels[currentTab] = data;
+        setTabs([...tabs]);
+        setTabsLabels([...tabsLabels]);
+    }
+
+    function setPreviewType(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            previewType: data,
+        };
+        setTabs([...tabs]);
+    }
+
+    function setTheme(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            theme: data,
+        };
+        setTabs([...tabs]);
+    }
+
+    function setResponseWindowHeight(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            responseWindowHeight: data,
+        };
+        setTabs([...tabs]);
+    }
+
+    function setCurrentMarker(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            currentMarker: data,
+        };
+        setTabs([...tabs]);
+    }
+
+    function setWindowResponse(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            windowResponse: data,
+        };
+        setTabs([...tabs]);
+    }
+
+    function setWindowResponseTable(data) {
+        tabs[currentTab] = {
+            ...tabs[currentTab],
+            windowResponseTable: data,
+        };
+        setTabs([...tabs]);
+    }
 
     return {
-        sparqlQueryVal: sparqlQueryVal,
+        sparqlQueryVal: tabs[currentTab]?.sparqlQueryVal,
         setSparqlQueryVal: setSparqlQueryVal,
-        url: url,
+        url: tabs[currentTab]?.url,
         setUrl: setUrl,
-        graphNameIri: graphNameIri,
+        graphNameIri: tabs[currentTab]?.graphNameIri,
         setGraphNameIri: setGraphNameIri,
-        timeOutVal: timeOutVal,
+        timeOutVal: tabs[currentTab]?.timeOutVal,
         setTimeoutVal: setTimeoutVal,
-        format: format,
+        format: tabs[currentTab]?.format,
         setFormat: setFormat,
-        responseWindowFormat: responseWindowFormat,
+        responseWindowFormat: tabs[currentTab]?.responseWindowFormat,
         setResponseWindowFormat: setResponseWindowFormat,
-        currentlyChosenOlderQuery: currentlyChosenOlderQuery,
+        currentlyChosenOlderQuery: tabs[currentTab]?.currentlyChosenOlderQuery,
         setCurrentlyChosenOlderQuery: setCurrentlyChosenOlderQuery,
-        checkboxVal: checkboxVal,
+        checkboxVal: tabs[currentTab]?.checkboxVal,
         setCheckboxVal: setCheckboxVal,
-        queryNameVal: queryNameVal,
+        queryNameVal: tabs[currentTab]?.queryNameVal,
         setQueryNameVal: setQueryNameVal,
-        previewType: previewType,
+        previewType: tabs[currentTab]?.previewType,
         setPreviewType: setPreviewType,
-        theme: theme,
+        theme: tabs[currentTab]?.theme,
         setTheme: setTheme,
-        responseWindowHeight: responseWindowHeight,
+        responseWindowHeight: tabs[currentTab]?.responseWindowHeight,
         setResponseWindowHeight: setResponseWindowHeight,
-        currentMarker: currentMarker,
+        currentMarker: tabs[currentTab]?.currentMarker,
         setCurrentMarker: setCurrentMarker,
-        responseWindowResponse: responseWindowResponse,
-        setResponseWindowResponse: setResponseWindowResponse,
-        setResponseWindowResponseTable: setResponseWindowResponseTable,
-        responseWindowResponseTable: responseWindowResponseTable,
-        // currentTab: currentTab,
-        // setCurrentTab: setCurrentTab,
+        windowResponse: tabs[currentTab]?.windowResponse,
+        setWindowResponse: setWindowResponse,
+        windowResponseTable: tabs[currentTab]?.windowResponseTable,
+        setWindowResponseTable: setWindowResponseTable,
+        setCurrentTab: setCurrentTab,
+        currentTab: currentTab,
+        createNewTab,
+        tabsLabels,
+        setTabsLabels,
+        closeTab: removeTab,
     };
 };

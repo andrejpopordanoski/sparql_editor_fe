@@ -20,11 +20,11 @@ function App() {
     let loggedIn = tokenHelper.auth();
 
     return (
-        <Provider store={store}>
-            {/* <div> Hello</div> */}
-            <Router style={{ flex: 1 }}>
-                <Switch>
-                    <ThemeProvider theme={theme}>
+        <ThemeProvider theme={theme}>
+            <Provider store={store}>
+                {/* <div> Hello</div> */}
+                <Router style={{ flex: 1 }}>
+                    <Switch>
                         <Route exact path="/">
                             {!loggedIn ? <Redirect to="/login" /> : <Redirect to="/sparql" />}
                         </Route>
@@ -32,10 +32,10 @@ function App() {
                         <Route path="/sparql" exact component={EditorWrapper} />
                         <Route path="/login" exact component={Login} />
                         <Route path="/register" exact component={RegisterScreen} />
-                    </ThemeProvider>
-                </Switch>
-            </Router>
-        </Provider>
+                    </Switch>
+                </Router>
+            </Provider>
+        </ThemeProvider>
     );
 }
 

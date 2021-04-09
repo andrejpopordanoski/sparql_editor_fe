@@ -23,3 +23,8 @@ export const GET_ALL_QUERIES = {
     entity: 'GET_ALL_QUERIES',
     action: Action.HANDLE,
 };
+
+export const GET_SAVED_QUERY_RESULT = {
+    entity: 'GET_SAVED_QUERY_RESULT',
+    action: Action.HANDLE,
+};

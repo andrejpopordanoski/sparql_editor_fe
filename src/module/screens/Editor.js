@@ -1,9 +1,9 @@
-import { Button, FormControl, Input, OutlinedInput, TextareaAutosize, TextField } from '@material-ui/core';
+import { Button, Checkbox, FormControl, Input, makeStyles, OutlinedInput, TextareaAutosize, TextField } from '@material-ui/core';
 import React, { useEffect, useRef, useState } from 'react';
-import { basicStyles } from 'styles';
+import { basicStyles, headers } from 'styles';
 import { InputLabel } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllQueriesAction, processQuery, processQueryHTML, saveQueryAction } from 'redux/actions/data.actions';
+import { getAllQueriesAction, getSavedQueryResultAction, processQuery, processQueryHTML, saveQueryAction } from 'redux/actions/data.actions';
 import { logoutAction } from 'redux/actions/auth.actions';
 
 import { themes } from 'static';
@@ -28,7 +28,15 @@ import 'codemirror/addon/fold/indent-fold';
 import 'codemirror/addon/fold/markdown-fold';
 import 'codemirror/addon/fold/comment-fold';
 import 'codemirror/addon/fold/foldgutter.css';
-import { useTabConfig } from './useTabConfig';
+import { validateEmail } from 'services/stringHelpers';
+import CustomInput from 'module/components/CustomInput';
+import NumericInput from 'material-ui-numeric-input';
+import CustomizedSelects from 'module/components/CustomSelect';
+// import playIcon from 'assets/icons/play.png';
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import ResizableBoxHandle from 'module/components/ResizableBoxHandle';
+// import { useTabConfig } from './useTabConfig';
+// import { useTabConfig } from './useTabConfig';
 require('codemirror/mode/sparql/sparql');
 require('codemirror/mode/javascript/javascript');
 require('codemirror/mode/xml/xml');
@@ -47,8 +55,17 @@ var htmlToReactParser = new HtmlToReactParser();
 
 const SparqlParser = require('sparqljs').Parser;
 const parser = new SparqlParser();
-
-export default function Editor({ history, style, currentTab, index }) {
+// const useStyles = makeStyles(theme => ({
+//     root: {
+//         display: 'flex',
+//         flexWrap: 'wrap',
+//     },
+//     margin: {
+//         margin: theme.spacing(1),
+//     },
+// }));
+export default function Editor({ history, style, currentTab, index, useTabConfig }) {
+    // const classes = useStyles();
     const {
         sparqlQueryVal,
         setSparqlQueryVal,
@@ -76,11 +93,12 @@ export default function Editor({ history, style, currentTab, index }) {
         setResponseWindowHeight,
         currentMarker,
         setCurrentMarker,
-        responseWindowResponse,
-        setResponseWindowResponse,
-        setResponseWindowResponseTable,
-        responseWindowResponseTable,
-    } = useTabConfig();
+        windowResponse,
+        setWindowResponse,
+        setWindowResponseTable,
+        windowResponseTable,
+        createNewTab,
+    } = useTabConfig;
 
     // const [sparqlQueryVal, setSparqlQueryVal] = useState(`select distinct ?Concept where {[] a ?Concept} LIMIT 10`);
     // const [url, setUrl] = useState(`http://dbpedia.org/sparql`);
@@ -99,12 +117,48 @@ export default function Editor({ history, style, currentTab, index }) {
     // const [theme, setTheme] = useState(`default`);
     // const [responseWindowHeight, setResponseWindowHeight] = useState(200);
     // const [currentMarker, setCurrentMarker] = useState(null);
+    const formatOptions = [
+        {
+            name: 'Json',
+            value: 'application/json',
+        },
+        {
+            name: 'HTML',
+            value: 'text/html',
+        },
+        {
+            name: 'Turtle',
+            value: 'text/turtle',
+        },
+        {
+            name: 'XML',
+            value: 'application/xml',
+        },
+        {
+            name: 'RDF/XML',
+            value: 'application/rdf+xml',
+        },
+        {
+            name: 'N-triples',
+            value: 'application/n-triples',
+        },
+        {
+            name: 'CSV',
+            value: 'text/csv',
+        },
+        {
+            name: 'TSV',
+            value: 'text/tab-separated-values',
+        },
+    ];
 
     const dispatch = useDispatch();
     const authState = useSelector(state => state.auth);
     const queryState = useSelector(state => state.query);
     const queryStateHTML = useSelector(state => state.queryHTML);
     const allQueries = useSelector(state => state.allQueries);
+    const savedQueryResult = useSelector(state => state.savedQueryResult);
+
     const codeMirrorRef = useRef(null);
     const codeMirrorRef2 = useRef(null);
 
@@ -121,61 +175,87 @@ export default function Editor({ history, style, currentTab, index }) {
         'text/tab-separated-values': 'tsv',
     };
 
-    useEffect(() => {
-        if (loggedIn) {
-            dispatch(getAllQueriesAction());
-        }
-    }, []);
+    const savedQueryOptions = allQueries.data.data
+        ? allQueries?.data?.data.map(el => {
+              return { name: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''), value: el };
+          })
+        : [];
 
     useEffect(() => {
         // console.log('it execs');
         setLoggedIn(tokenHelper.auth());
     }, [authState]);
 
+    // useEffect(() => {
+    //     if (currentlyChosenOlderQuery) {
+    //         // setSparqlQueryVal(currentlyChosenOlderQuery.queryString);
+
+    //         // setUrl(currentlyChosenOlderQuery.url);
+    //         // if (codeMirrorRef.current) {
+    //         //     codeMirrorRef.current.codeMirror.setValue(currentlyChosenOlderQuery.queryString);
+    //         //     // codeMirrorRef.current.codeMirror.setValue(sparqlQueryVal);
+    //         // }
+
+    //         // setGraphNameIri(currentlyChosenOlderQuery.defaultDatasetName);
+
+    //         // setTimeoutVal(currentlyChosenOlderQuery.timeout);
+
+    //         // setFormat(currentlyChosenOlderQuery.format);
+    //         let newTab = {
+    //             sparqlQueryVal: currentlyChosenOlderQuery.queryString,
+    //             url: currentlyChosenOlderQuery.url,
+    //             graphNameIri: currentlyChosenOlderQuery.defaultDatasetName,
+    //             timeout: currentlyChosenOlderQuery.timeout,
+    //             format: currentlyChosenOlderQuery.format,
+    //         };
+    //         createNewTab(newTab);
+    //     }
+    // }, [currentlyChosenOlderQuery]);
+
+    // useEffect(() => {
+    //     if (codeMirrorRef2.current) {
+    //         codeMirrorRef2.current.codeMirror.setValue(queryState?.data?.data);
+    //     }
+    // }, [queryState]);
+
     useEffect(() => {
-        if (currentlyChosenOlderQuery && currentTab === index) {
-            setSparqlQueryVal(currentlyChosenOlderQuery.queryString);
-
-            setUrl(currentlyChosenOlderQuery.url);
-            if (codeMirrorRef.current) {
-                codeMirrorRef.current.codeMirror.setValue(currentlyChosenOlderQuery.queryString);
-                // codeMirrorRef.current.codeMirror.setValue(sparqlQueryVal);
-            }
-
-            setGraphNameIri(currentlyChosenOlderQuery.defaultDatasetName);
-
-            setTimeoutVal(currentlyChosenOlderQuery.timeout);
-
-            setFormat(currentlyChosenOlderQuery.format);
+        if (codeMirrorRef.current) {
+            // codeMirrorRef.current.codeMirror.setValue(currentlyChosenOlderQuery.queryString);
+            codeMirrorRef.current.codeMirror.setValue(sparqlQueryVal);
+            validator(sparqlQueryVal);
         }
-    }, [currentlyChosenOlderQuery]);
+    }, [currentTab]);
+
+    useEffect(() => {
+        if (stateIsLoaded(queryState)) {
+            setWindowResponse(setupDataForResponseWindow(queryState?.data?.data));
+        }
+    }, [queryState]);
+
+    useEffect(() => {
+        if (stateIsLoaded(savedQueryResult)) {
+            setWindowResponse(setupDataForResponseWindow(savedQueryResult?.data?.data));
+        }
+    }, [savedQueryResult]);
 
     useEffect(() => {
         if (codeMirrorRef2.current) {
-            codeMirrorRef2.current.codeMirror.setValue(setupDataForResponseWindow(queryState?.data?.data));
+            codeMirrorRef2.current.codeMirror.setValue(windowResponse);
         }
-    }, [responseWindowResponse]);
-
-    // useEffect(() => {
-    //     if (codeMirrorRef.current) {
-    //         // codeMirrorRef.current.codeMirror.setValue(currentlyChosenOlderQuery.queryString);
-    //         codeMirrorRef.current.codeMirror.setValue(sparqlQueryVal);
-    //     }
-    // }, [sparqlQueryVal]);
+    }, [windowResponse]);
 
     useEffect(() => {
-        // console.log('it execs');
-        // setLoggedIn(tokenHelper.auth());
-        console.log(queryState);
-        if (stateIsLoaded(queryState)) {
-            // codeMirrorRef2.current.codeMirror.setValue(queryState?.data?.data);
-            // if (codeMirrorRef2.current) {
-            //     codeMirrorRef2.current.codeMirror.setValue(setupDataForResponseWindow(queryState?.data?.data));
-            // }
-            // console.log(queryState?.data?.data);
-            setResponseWindowResponse(setupDataForResponseWindow(queryState?.data?.data));
+        // console.log(queryStateHTML);
+        if (stateIsLoaded(queryStateHTML)) {
+            setWindowResponseTable(queryStateHTML?.data?.data);
         }
-    }, [queryState]);
+    }, [queryStateHTML]);
+
+    useEffect(() => {
+        if (codeMirrorRef2.current) {
+            codeMirrorRef2.current.codeMirror.setValue(windowResponse);
+        }
+    }, [windowResponse]);
 
     function setupDataForResponseWindow(data) {
         switch (format) {
@@ -189,7 +269,6 @@ export default function Editor({ history, style, currentTab, index }) {
     }
 
     function makeMarker(msg) {
-        console.log('maker called');
         const marker = document.createElement('div');
         marker.classList.add('error-marker');
         marker.innerHTML = '&nbsp;';
@@ -258,172 +337,221 @@ export default function Editor({ history, style, currentTab, index }) {
         }
     }
 
-    console.log(currentlyChosenOlderQuery?.queryName);
-
     return (
-        <View style={{ ...basicStyles.paddingContainer, flex: 1, ...style }}>
-            <Text> SPARQL Editor </Text>
-            {/* {loggedIn && (
-                <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
-                    <Button
-                        onClick={() => {
-                            // dispatch(lo);
-                            dispatch(logoutAction());
-                        }}
-                    >
-                        Logout
-                    </Button>
-                </View>
-            )}
-            {!loggedIn && (
-                <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
-                    <Button
-                        onClick={() => {
-                            // dispatch(lo);
-                            history.replace('/login');
-                        }}
-                    >
-                        Login
-                    </Button>
-                    <Button
-                        onClick={() => {
-                            // dispatch(lo);
-                            history.replace('/register');
-                        }}
-                    >
-                        Register
-                    </Button>
-                </View>
-            )} */}
-            {/* <FormControl style={{ flex: 1 }}> */}
-            <form
-                action={encodeURI(`http://localhost:8080/sparql`)}
-                id="someform"
-                method={'GET'}
-                target="blank"
-                onSubmit={eve => {
-                    eve.preventDefault();
-                    dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal));
-                    dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal));
-                    setResponseWindowFormat(formatToCodeMirrorMode[format]);
-                }}
-            >
-                Url:{' '}
-                <input
-                    type="text"
-                    name="url"
-                    value={url}
-                    onChange={event => {
-                        setUrl(event.target.value);
-                    }}
-                />
-                Default graph set iri:{' '}
-                <input
-                    type="text"
-                    name="defaultGraphSetIri"
-                    value={graphNameIri}
-                    onChange={event => {
-                        setGraphNameIri(event.target.value);
-                    }}
-                />
-                Timeout:{' '}
-                <input
-                    type="number"
-                    name="timeout"
-                    value={timeOutVal}
-                    onChange={event => {
-                        setTimeoutVal(event.target.value);
-                    }}
-                />
-                <TextareaAutosize
-                    hidden
-                    name={'queryStr'}
-                    form={'someform'}
-                    value={sparqlQueryVal}
-                    style={{ width: '100%' }}
-                    onChange={event => {
-                        setSparqlQueryVal(event.target.value);
-                    }}
-                    aria-label="minimum height"
-                    rowsMin={10}
-                    placeholder="Minimum 3 rows"
-                />
-                <select
-                    name="format"
-                    form="someform"
-                    onChange={(event, value) => {
-                        console.log(event.target.value);
-                        setFormat(event.target.value);
-                    }}
-                >
-                    <option value="application/json">json</option>
-                    <option value="text/html">html</option>
-                    <option value="text/turtle">turtle</option>
-                    <option value="application/xml">xml</option>
-                    <option value="application/rdf+xml">rdf/xml</option>
-                    <option value="application/n-triples">N-triples</option>
-                    <option value="text/csv">csv</option>
-                    <option value="text/tab-separated-values">tsv</option>
-                </select>
-                {allQueries?.data?.data && (
-                    <select
-                        onChange={(event, value) => {
-                            // console.log(event.target.value);
-                            console.log(JSON.parse(event.target.value));
-                            setCurrentlyChosenOlderQuery(JSON.parse(event.target.value));
-                        }}
-                    >
-                        <option el={null}>default</option>
-                        {allQueries?.data?.data.map(el => {
-                            return <option value={JSON.stringify(el)}>{el.queryName} </option>;
-                        })}
-                    </select>
-                )}
-                <input
-                    type="submit"
-                    onClick={() => {
-                        console.log('yes clicked');
-                        if (checkboxVal) {
-                            dispatch(saveQueryAction(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryNameVal));
-                        }
-                    }}
-                />
-                {loggedIn && (
-                    <>
-                        <input
-                            type="text"
+        <View style={{ flex: 1, ...style }}>
+            <View style={{ flexDirection: 'row', paddingLeft: 42, paddingRight: 30 }}>
+                <View style={{ flex: 1, paddingTop: 20 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 20 }}>
+                        {/* <Text style={{ ...headers.H5(null, 'Medium') }}> Query url from: </Text> */}
+                        <CustomInput
+                            maxSize={130}
+                            style={{ paddingRight: 20 }}
+                            label={'Query name'}
                             value={queryNameVal}
-                            onChange={event => {
-                                setQueryNameVal(event.target.value);
+                            setValue={setQueryNameVal}
+                        ></CustomInput>
+                        <CustomInput
+                            label={'Query url from'}
+                            style={{ width: '30%', paddingRight: 20 }}
+                            value={url}
+                            setValue={setUrl}
+                            maxSize={400}
+                        ></CustomInput>
+
+                        <CustomizedSelects
+                            label={'Format'}
+                            options={formatOptions}
+                            currentOption={format}
+                            setCurrentOption={setFormat}
+                        ></CustomizedSelects>
+                        {/* <TextField className={classes.root} id="standard-basic" label="Standard" color="primary" /> */}
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {/* <Text style={{ ...headers.H5(null, 'Medium') }}> Query url from: </Text> */}
+                        <CustomInput
+                            label={'Timeout'}
+                            style={{ paddingRight: 20 }}
+                            maxSize={130}
+                            value={timeOutVal}
+                            setValue={setTimeoutVal}
+                            type={'number'}
+                        ></CustomInput>
+                        <CustomInput
+                            label={'Default Data Set Name (Graph IRI)'}
+                            style={{ width: '30%', paddingRight: 20 }}
+                            value={graphNameIri}
+                            setValue={setGraphNameIri}
+                            maxSize={400}
+                        ></CustomInput>
+
+                        {/* <TextField className={classes.root} id="standard-basic" label="Standard" color="primary" /> */}
+                    </View>
+
+                    {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {/* <Text style={{ ...headers.H5(null, 'Medium') }}> Query name </Text> */}
+
+                    {/* <CustomInput label={'Query name'} value={queryNameVal} setValue={setQueryNameVal}></CustomInput> */}
+                    {/* <Text style={{ ...headers.H5(null, 'Medium') }}> Open saved query </Text> */}
+                    {/* <CustomizedSelects
+                            options={savedQueryOptions}
+                            noSelectOpt={true}
+                            label={'Open saved query'}
+                            onSelect={value => {
+                                console.log(value);
+                                // console.log(JSON.parse(value));
+                                // setCurrentlyChosenOlderQuery(JSON.parse(value));
+                                // let parsed = JSON.parse(value);
+                                let newTab = {
+                                    sparqlQueryVal: value.queryString,
+                                    url: value.url,
+                                    graphNameIri: value.defaultDatasetName,
+                                    timeOutVal: value.timeout,
+                                    format: value.format,
+                                    queryNameVal: value.queryName + (value.queryNameSuffix ? value.queryNameSuffix : ''),
+                                };
+                                dispatch(getSavedQueryResultAction(value.format, value.id));
+                                createNewTab(newTab);
                             }}
-                        />
-                        <input
-                            type="checkbox"
-                            name="saveResults"
-                            value={checkboxVal}
-                            onChange={event => {
-                                setCheckboxVal(event.target.checked);
+                            currentOption={currentlyChosenOlderQuery}
+                            setCurrentOption={setCurrentlyChosenOlderQuery}
+                        ></CustomizedSelects> 
+
+                        {loggedIn && (
+                            <View style={{ flexDirection: 'row', paddingTop: 20, alignItems: 'center' }}>
+                                <Checkbox
+                                    checked={checkboxVal}
+                                    onChange={event => {
+                                        setCheckboxVal(event.target.checked);
+                                    }}
+                                    inputProps={{ 'aria-label': 'primary checkbox' }}
+                                />
+                                <Text style={{ ...headers.H6(null, 'Regular') }}> Save query on submit </Text>
+                            </View>
+                        )}
+                    </View> */}
+
+                    <TextareaAutosize
+                        hidden
+                        name={'queryStr'}
+                        form={'someform'}
+                        value={sparqlQueryVal}
+                        style={{ width: '100%' }}
+                        onChange={event => {
+                            setSparqlQueryVal(event.target.value);
+                        }}
+                        aria-label="minimum height"
+                        rowsMin={10}
+                        placeholder="Minimum 3 rows"
+                    />
+
+                    {/* {allQueries?.data?.data && (
+                        <select
+                            onChange={(event, value) => {
+                                // console.log(event.target.value);
+                                console.log(JSON.parse(event.target.value));
+                                setCurrentlyChosenOlderQuery(JSON.parse(event.target.value));
+                                let parsed = JSON.parse(event.target.value);
+                                let newTab = {
+                                    sparqlQueryVal: parsed.queryString,
+                                    url: parsed.url,
+                                    graphNameIri: parsed.defaultDatasetName,
+                                    timeOutVal: parsed.timeout,
+                                    format: parsed.format,
+                                    queryNameVal: parsed.queryName + (parsed.queryNameSuffix ? parsed.queryNameSuffix : ''),
+                                };
+                                dispatch(getSavedQueryResultAction(parsed.format, parsed.id));
+                                createNewTab(newTab);
                             }}
-                        />
-                    </>
-                )}
-            </form>
+                        >
+                            <option el={null}>default</option>
+                            {allQueries?.data?.data.map(el => {
+                                return <option value={JSON.stringify(el)}>{el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : '')} </option>;
+                            })}
+                        </select>
+                    )}
+                    <input
+                        type="submit"
+                        onClick={() => {
+                            // eve.preventDefault();
+                            dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal));
+                            dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal));
+                            setResponseWindowFormat(formatToCodeMirrorMode[format]);
+                            if (checkboxVal) {
+                                dispatch(saveQueryAction(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryNameVal));
+                            }
+                        }}
+                    /> */}
+                    {/* {loggedIn && (
+                        <>
+                            <input
+                                type="text"
+                                value={queryNameVal}
+                                onChange={event => {
+                                    setQueryNameVal(event.target.value);
+                                }}
+                            />
+                            <input
+                                type="checkbox"
+                                name="saveResults"
+                                value={checkboxVal}
+                                onChange={event => {
+                                    setCheckboxVal(event.target.checked);
+                                }}
+                            />
+                        </>
+                    )} */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+                        <CustomizedSelects
+                            label={'Theme'}
+                            options={[
+                                { name: 'default', value: 'default' },
+                                ...themes.map(el => {
+                                    return {
+                                        name: el,
+                                        value: el,
+                                    };
+                                }),
+                            ]}
+                            currentOption={theme}
+                            setCurrentOption={setTheme}
+                        ></CustomizedSelects>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            endIcon={<PlayArrowIcon fontSize={'large'} />}
+                            style={{ marginLeft: 20 }}
+                            onClick={() => {
+                                // eve.preventDefault();
+                                dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal));
+                                dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal));
+                                setResponseWindowFormat(formatToCodeMirrorMode[format]);
+                                if (checkboxVal) {
+                                    dispatch(saveQueryAction(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryNameVal));
+                                    // dispatch(getAllQueriesAction());
+                                }
+                            }}
+                        >
+                            Execute query
+                        </Button>
+                    </View>
+                </View>
+            </View>
+            {/* </form> */}
 
             <ResizableBox
                 className="custom-box box"
                 width={'100%'}
-                height={200}
+                height={300}
                 style={{ border: '1px solid #DDDDDD' }}
                 handleSize={[8, 8]}
                 resizeHandles={['s']}
                 handle={
                     <div
-                        resizeHandle={'s'}
                         style={{
                             width: '25%',
                             height: 5,
                             marginTop: 5,
-                            background: 'gray',
+                            background: '#C6C6C6',
                             cursor: 'row-resize',
                             marginLeft: '50%',
                             transform: 'translateX(-50%)',
@@ -434,7 +562,7 @@ export default function Editor({ history, style, currentTab, index }) {
                 <CodeMirror
                     className={'code-editor'}
                     ref={codeMirrorRef}
-                    style={{ height: 250 }}
+                    style={{ height: 200 }}
                     value={sparqlQueryVal}
                     lint={true}
                     onChange={data => {
@@ -443,8 +571,8 @@ export default function Editor({ history, style, currentTab, index }) {
                     }}
                     options={{
                         lineNumbers: true,
-                        lint: true,
                         mode: 'sparql',
+                        lint: true,
                         theme: theme,
                         gutters: ['error', 'CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
                         foldGutter: true,
@@ -477,7 +605,7 @@ export default function Editor({ history, style, currentTab, index }) {
                         className="custom-box box"
                         // width={100}
                         height={responseWindowHeight}
-                        style={{ border: '1px solid #DDDDDD', marginTop: 20 }}
+                        style={{ border: '1px solid #DDDDDD', marginTop: 20, marginBottom: 100 }}
                         handleSize={[8, 8]}
                         resizeHandles={['s']}
                         onResize={(ev, data) => {
@@ -490,7 +618,7 @@ export default function Editor({ history, style, currentTab, index }) {
                                     width: '25%',
                                     height: 5,
                                     marginTop: 5,
-                                    background: 'gray',
+                                    background: '#C6C6C6',
                                     cursor: 'row-resize',
                                     marginLeft: '50%',
                                     transform: 'translateX(-50%)',
@@ -501,7 +629,7 @@ export default function Editor({ history, style, currentTab, index }) {
                         <CodeMirror
                             ref={codeMirrorRef2}
                             style={{ height: 250, width: '100%' }}
-                            value={setupDataForResponseWindow(responseWindowResponse)}
+                            value={windowResponse}
                             lint={true}
                             onChange={data => {}}
                             options={{
@@ -524,7 +652,7 @@ export default function Editor({ history, style, currentTab, index }) {
                             className="custom-box box"
                             height={responseWindowHeight}
                             // width={100}
-                            style={{ border: '1px solid #DDDDDD', marginTop: 20 }}
+                            style={{ border: '1px solid #DDDDDD', marginTop: 20, marginBottom: 100 }}
                             handleSize={[8, 8]}
                             resizeHandles={['s']}
                             onResize={(ev, data) => {
@@ -536,44 +664,30 @@ export default function Editor({ history, style, currentTab, index }) {
                                         width: '25%',
                                         height: 5,
                                         marginTop: 5,
-                                        background: 'gray',
+                                        background: '#C6C6C6',
                                         cursor: 'row-resize',
                                         marginLeft: '50%',
                                         transform: 'translateX(-50%)',
-                                        marginBottom: 20,
                                     }}
                                 ></div>
                             }
                         >
                             <View style={{ height: '100%', width: '100%', overflow: 'auto' }}>
-                                {queryStateHTML?.data?.data && htmlToReactParser.parse(queryStateHTML?.data?.data)}
+                                {windowResponseTable && htmlToReactParser.parse(windowResponseTable)}
                             </View>
                         </ResizableBox>
                     </>
                 )}
             </View>
 
-            <div style={{ marginTop: 20 }}>
-                <select
-                    onChange={event => {
-                        setTheme(event.target.value);
-                    }}
-                    id="select"
-                >
-                    <option>default</option>
-                    {themes.map(el => {
-                        return <option> {el} </option>;
-                    })}
-                </select>
-            </div>
-            <button
+            {/* <button
                 onClick={() => {
                     var blob = new Blob([queryState.data.data], { type: `${format};charset=utf-8` });
                     FileSaver.saveAs(blob, queryNameVal);
                 }}
             >
                 Download
-            </button>
+            </button> */}
         </View>
     );
 }

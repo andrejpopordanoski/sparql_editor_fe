@@ -1,5 +1,7 @@
-import { Button, Typography } from '@material-ui/core';
+import { Button, FormControl, Select, Typography, InputLabel, MenuItem } from '@material-ui/core';
+import CustomizedSelects from 'module/components/CustomSelect';
 import { AntTab, useStyles, AntTabs } from 'module/components/CustomTabs';
+import Text from 'module/components/Text';
 import View from 'module/components/View';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,15 +9,25 @@ import { logoutAction } from 'redux/actions/auth.actions';
 import { tokenHelper } from 'services/tokenHelpers';
 import Editor from './Editor';
 import { useTabConfig } from './useTabConfig';
-
+import AddIcon from '@material-ui/icons/Add';
+import { palette } from 'styles/pallete';
+import { headers } from 'styles';
+import SideMenu from 'module/screens/SideMenu';
+import { getAllQueriesAction } from 'redux/actions/data.actions';
 export default function EditorWrapper({ history }) {
     const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
-    const [currentTab, setCurrentTab] = useState(0);
-    const [tabs, setTabs] = useState(['Unsaved query']);
+    // const [currentTab, setCurrentTab] = useState(0);
+    // const [tabs, setTabs] = useState(['Unsaved query']);
+    const allQueries = useSelector(state => state.allQueries);
 
-    // const useTabs = useTabConfig();
+    const savedQueryOptions = allQueries.data.data
+        ? allQueries?.data?.data.map(el => {
+              return { name: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''), value: el };
+          })
+        : [];
+    const useTabs = useTabConfig();
 
-    // const [tabConfigs, setTabConfigs] = useState([useTabConfig, useTabConfig]);
+    // const [tabConfigs, setTabConfigs] = useState([useTabConfig(), useTabConfig()]);
     // const tabConfing1 = useTabConfig();
     // const tabConfing2 = useTabConfig();
 
@@ -27,20 +39,57 @@ export default function EditorWrapper({ history }) {
     const dispatch = useDispatch();
 
     const handleChange = (event, newValue) => {
-        console.log(newValue);
-        setCurrentTab(newValue);
+        useTabs.setCurrentTab(newValue);
     };
 
     useEffect(() => {
         setLoggedIn(tokenHelper.auth());
     }, [authState]);
 
+    useEffect(() => {
+        if (loggedIn) {
+            dispatch(getAllQueriesAction());
+        }
+    }, []);
+
     return (
         <View style={{ flex: 1 }}>
             <View>
-                {loggedIn && (
-                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
+                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', padding: 10, backgroundColor: '#303030' }}>
+                    <View style={{ flex: 1, flexDirection: 'row' }}>
+                        <Text style={{ ...headers.H3('white'), paddingLeft: 20 }}> SPARQL Editor </Text>
+                        {/* {loggedIn && (
+                            <CustomizedSelects
+                                options={savedQueryOptions}
+                                // noSelectOpt={true}
+                                label={'Open saved query'}
+                                // outlined={true}
+                                onSelect={value => {
+                                    // console.log(value);
+                                    // // console.log(JSON.parse(value));
+                                    // // setCurrentlyChosenOlderQuery(JSON.parse(value));
+                                    // // let parsed = JSON.parse(value);
+                                    // let newTab = {
+                                    //     sparqlQueryVal: value.queryString,
+                                    //     url: value.url,
+                                    //     graphNameIri: value.defaultDatasetName,
+                                    //     timeOutVal: value.timeout,
+                                    //     format: value.format,
+                                    //     queryNameVal: value.queryName + (value.queryNameSuffix ? value.queryNameSuffix : ''),
+                                    // };
+                                    // dispatch(getSavedQueryResultAction(value.format, value.id));
+                                    // createNewTab(newTab);
+                                }}
+                                currentOption={useTabs.currentlyChosenOlderQuery}
+                                setCurrentOption={useTabs.setCurrentlyChosenOlderQuery}
+                            ></CustomizedSelects>
+                        )} */}
+                    </View>
+                    {loggedIn && (
                         <Button
+                            variant="outlined"
+                            color="primary"
+                            style={{ justifySelf: 'flex-end' }}
                             onClick={() => {
                                 // dispatch(lo);
                                 dispatch(logoutAction());
@@ -48,56 +97,96 @@ export default function EditorWrapper({ history }) {
                         >
                             Logout
                         </Button>
-                    </View>
-                )}
-                {!loggedIn && (
-                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
-                        <Button
-                            onClick={() => {
-                                // dispatch(lo);
-                                history.replace('/login');
-                            }}
-                        >
-                            Login
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                // dispatch(lo);
-                                history.replace('/register');
-                            }}
-                        >
-                            Register
-                        </Button>
-                    </View>
-                )}
-            </View>
-            <View>
-                <div className={classes.demo1}>
-                    <AntTabs value={currentTab} onChange={handleChange} aria-label="ant example">
-                        {tabs.map(el => {
-                            return <AntTab label={el} />;
-                        })}
-
-                        <View>
-                            <div
+                    )}
+                    {!loggedIn && (
+                        <>
+                            <Button
+                                variant="outlined"
+                                color="primary"
                                 onClick={() => {
-                                    setTabs([...tabs, 'Unsaved query']);
-                                    setCurrentTab(tabs.length);
+                                    // dispatch(lo);
+                                    history.replace('/login');
                                 }}
-                                style={{ width: 30, height: 30 }}
-                                className="plus alt"
-                            ></div>
-                        </View>
-                    </AntTabs>
-                    <Typography className={classes.padding} />
-                </div>
+                            >
+                                Login
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={() => {
+                                    // dispatch(lo);
+                                    history.replace('/register');
+                                }}
+                            >
+                                Register
+                            </Button>
+                        </>
+                    )}
+                </View>
             </View>
-            {tabs.map((el, index) => {
-                return (
-                    <Editor currentTab={currentTab} index={index} hidden={true} style={{ display: currentTab === index ? 'flex' : 'none' }}></Editor>
-                );
-            })}
-            {/* <Editor hidden={true} ></Editor> */}
+            <View style={{ flexDirection: 'row' }}>
+                <SideMenu useTabConfig={useTabs}></SideMenu>
+                <View style={{ flex: 1 }}>
+                    <View>
+                        <div>
+                            <AntTabs color="primary" value={useTabs.currentTab} onChange={handleChange} aria-label="ant example">
+                                {useTabs.tabsLabels.map((el, index) => {
+                                    return (
+                                        <AntTab
+                                            label={el}
+                                            key={index}
+                                            onClosePress={() => {
+                                                console.log('pressed close');
+                                                useTabs.closeTab(index);
+                                            }}
+                                        />
+                                    );
+                                })}
+
+                                <View
+                                    style={{
+                                        margin: 5,
+                                        border: `2px solid ${palette.secondary.light}`,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    {/* <div
+                                        onClick={() => {
+                                            // setTabs([...tabs, 'Unsaved query']);
+                                            useTabs.createNewTab();
+                                            // useTabs.setCurrentTab(tabs.length);
+                                        }}
+                                        style={{ width: 30, height: 30, marginTop: 0 }}
+                                        className="plus alt"
+                                    ></div> */}
+                                    <AddIcon
+                                        color="secondary"
+                                        fontSize={'large'}
+                                        onClick={() => {
+                                            // setTabs([...tabs, 'Unsaved query']);
+                                            useTabs.createNewTab();
+                                            // useTabs.setCurrentTab(tabs.length);
+                                        }}
+                                        style={{ width: 30, height: 30 }}
+                                    />
+                                    {/* <Button style={{ width: 30, height: 30 }} startIcon={<AddIcon />}></Button> */}
+                                </View>
+                            </AntTabs>
+                            {/* <Typography className={classes.padding} /> */}
+                        </div>
+                    </View>
+                    <View style={{ flex: 1, flexDirection: 'row' }}>
+                        <Editor
+                            useTabConfig={useTabs}
+                            currentTab={useTabs.currentTab}
+
+                            // hidden={true}
+                            // style={{ display: useTabs.currentTab === index ? 'flex' : 'none' }}
+                        ></Editor>
+                    </View>
+                </View>
+            </View>
         </View>
     );
 }

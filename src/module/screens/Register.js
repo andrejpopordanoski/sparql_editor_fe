@@ -19,7 +19,6 @@ export default function RegisterScreen({ history }) {
     const authState = useSelector(state => state.auth);
     let loggedIn = tokenHelper.auth();
     useEffect(() => {
-        console.log(stateIsLoaded(registerState));
         if (stateIsLoaded(registerState)) {
             dispatch(passwordLoginAction(username, password));
         }

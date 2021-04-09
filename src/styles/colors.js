@@ -5,64 +5,39 @@ function createColorWithOpacity(color, opacity) {
 }
 
 export const colors = {
-    sideBar: function (opacity) {
-        return createColorWithOpacity('#3BA998', opacity);
-    }, // zolta
     background: function (opacity) {
         return createColorWithOpacity('#7BC6C3', opacity);
     },
-    workoutDone: function (opacity) {
-        return createColorWithOpacity('#A4E475', opacity);
-    },
-    workoutRestDay: function (opacity) {
-        return createColorWithOpacity('#8675E4', opacity);
-    },
 
-    workoutNotAnswered: function (opacity) {
-        return createColorWithOpacity('#FFFF00', opacity);
-    }, // Vrz zoltata posvetla,
-    workoutFailed: function (opacity) {
-        return createColorWithOpacity('#E37373', opacity);
-    },
     themePrimary: function (opacity) {
         return createColorWithOpacity('#86CDCA', opacity);
     },
-    themeSecoundary: function (opacity) {
-        return createColorWithOpacity('#41B3A3', opacity);
+
+    borderGrayColor: function (opacity) {
+        return createColorWithOpacity('#D7D7D6', opacity);
     },
-    themeActive: function (opacity) {
-        return createColorWithOpacity('#E27D60', opacity);
+    backgroundLightGray: function (opacity) {
+        return createColorWithOpacity('#FAFAFA', opacity);
     },
-    themeActive2: function (opacity) {
-        return createColorWithOpacity('#E8A87C', opacity);
+    backgroundLightGray1: function (opacity) {
+        return createColorWithOpacity('#F0F0F0', opacity);
     },
-    themeDull: function (opacity) {
-        return createColorWithOpacity('#C38D9E', opacity);
-    },
-    lightGreen: function (opacity) {
-        return createColorWithOpacity('#E7F9FA', opacity);
+    backgroundLightGray2: function (opacity) {
+        return createColorWithOpacity('#D2D2D2', opacity);
     },
 
     primaryText: function (opacity) {
-        return createColorWithOpacity('#5C5C5C', opacity);
+        return createColorWithOpacity('#303030', opacity);
     },
     secoundaryText: function (opacity) {
         return createColorWithOpacity('#6F6F6F', opacity);
     },
-    lightText: function (opacity) {
-        return createColorWithOpacity('#ADADAD', opacity);
-    },
-    borderGrayColor: function (opacity) {
-        return createColorWithOpacity('#BFBFBF', opacity);
-        // return createColorWithOpacity('#ced4da', opacity);
 
-        // ced4da
-    },
-    optionsColor: function (opacity) {
-        return createColorWithOpacity('#F0F0F0', opacity);
-    },
     disabled: function (opacity) {
         return createColorWithOpacity('#B9B9B9', opacity);
+    },
+    error: function (opacity) {
+        return createColorWithOpacity('#E31515', opacity);
     },
 };
 

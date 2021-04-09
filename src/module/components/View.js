@@ -1,6 +1,13 @@
-export default function View({ children, style, hidden }) {
+export default function View({ children, style, hidden, onMouseEnter, onMouseLeave, className, onClick }) {
     return (
-        <div hidden={hidden} style={{ minHeight: 0, display: 'flex', flexDirection: 'column', ...style }}>
+        <div
+            className={className}
+            hidden={hidden}
+            style={{ minHeight: 0, display: 'flex', flexDirection: 'column', ...style }}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            onClick={onClick}
+        >
             {children}
         </div>
     );
