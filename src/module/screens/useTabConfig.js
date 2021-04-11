@@ -20,7 +20,7 @@ SELECT * WHERE {
         checkboxVal: false,
         queryNameVal: 'Untitled',
         previewType: 'response',
-        theme: 'default',
+        theme: 'darcula',
         responseWindowHeight: 250,
         currentMarker: null,
         windowResponse: '',

@@ -7,10 +7,11 @@
 
 .error-marker {
     color: black;
-    width: 15px !important;
-    height: 15px !important;
+    width: 18px !important;
+    height: 18px !important;
+    /* opacity: 0.8; */
 
-    background: url('assets/icons/err.png');
+    background: url('assets/icons/err-icon-latest.png');
     background-size: cover; /* Resize the background image to cover the entire container */
 
     /* background-color: #ff0000; */
@@ -19,7 +20,7 @@
 .error-marker .error-message {
     display: none;
     position: absolute;
-    background-color: rgba(221, 221, 221, 0.894);
+    background-color: rgba(221, 221, 221, 0.9);
     border: 1px solid rgba(190, 188, 188, 0.812);
     font-family: Helvetica-Regular;
     border-radius: 10px;

@@ -12,6 +12,7 @@ import { passwordLoginAction, registerUserAction } from 'redux/actions/auth.acti
 import { tokenHelper } from 'services/tokenHelpers';
 import { Redirect } from 'react-router';
 import { Link } from 'react-router-dom';
+import { palette } from 'styles/pallete';
 
 export default function RegisterScreen({ history }) {
     const dispatch = useDispatch();
@@ -38,8 +39,6 @@ export default function RegisterScreen({ history }) {
     if (stateIsLoaded(authState) && loggedIn) {
         return <Redirect to="/sparql" />;
     }
-
-    console.log(registerState);
 
     const register = () => {
         dispatch(registerUserAction(username, password, firstName, lastName));
@@ -112,7 +111,7 @@ export default function RegisterScreen({ history }) {
                             style={{
                                 alignSelf: 'flex-end',
                                 marginTop: 20,
-                                backgroundColor: colors.themeActive(),
+                                backgroundColor: palette.primary.main,
                                 color: 'white',
                             }}
                             onClick={() => {

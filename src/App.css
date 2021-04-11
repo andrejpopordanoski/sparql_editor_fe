@@ -69,5 +69,5 @@ tr {
     word-wrap: break-word;
 }
 tr:nth-child(even) {
-    background-color: #dddddd;
+    background-color: #f1f1f1;
 }

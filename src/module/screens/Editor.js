@@ -1,6 +1,6 @@
 import { Button, Checkbox, FormControl, Input, makeStyles, OutlinedInput, TextareaAutosize, TextField } from '@material-ui/core';
 import React, { useEffect, useRef, useState } from 'react';
-import { basicStyles, headers } from 'styles';
+import { basicStyles, colors, headers } from 'styles';
 import { InputLabel } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllQueriesAction, getSavedQueryResultAction, processQuery, processQueryHTML, saveQueryAction } from 'redux/actions/data.actions';
@@ -35,6 +35,9 @@ import CustomizedSelects from 'module/components/CustomSelect';
 // import playIcon from 'assets/icons/play.png';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import ResizableBoxHandle from 'module/components/ResizableBoxHandle';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import TableChartIcon from '@material-ui/icons/TableChart';
+import ListAltIcon from '@material-ui/icons/ListAlt';
 // import { useTabConfig } from './useTabConfig';
 // import { useTabConfig } from './useTabConfig';
 require('codemirror/mode/sparql/sparql');
@@ -55,6 +58,7 @@ var htmlToReactParser = new HtmlToReactParser();
 
 const SparqlParser = require('sparqljs').Parser;
 const parser = new SparqlParser();
+
 // const useStyles = makeStyles(theme => ({
 //     root: {
 //         display: 'flex',
@@ -100,23 +104,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         createNewTab,
     } = useTabConfig;
 
-    // const [sparqlQueryVal, setSparqlQueryVal] = useState(`select distinct ?Concept where {[] a ?Concept} LIMIT 10`);
-    // const [url, setUrl] = useState(`http://dbpedia.org/sparql`);
-    // const [graphNameIri, setGraphNameIri] = useState(`http://dbpedia.org`);
-    // const [timeOutVal, setTimeoutVal] = useState(30000);
-    // const [format, setFormat] = useState('application/json');
-    // const [responseWindowFormat, setResponseWindowFormat] = useState('javascript');
-    // const [currentlyChosenOlderQuery, setCurrentlyChosenOlderQuery] = useState(null);
-    // const [checkboxVal, setCheckboxVal] = useState(false);
-    // const [queryNameVal, setQueryNameVal] = useState('Untitled');
-    // const [previewType, setPreviewType] = useState('response');
-    // const authState = useSelector(state => state.auth);
-    // const queryState = useSelector(state => state.query);
-    // const queryStateHTML = useSelector(state => state.queryHTML);
-    // const allQueries = useSelector(state => state.allQueries);
-    // const [theme, setTheme] = useState(`default`);
-    // const [responseWindowHeight, setResponseWindowHeight] = useState(200);
-    // const [currentMarker, setCurrentMarker] = useState(null);
     const formatOptions = [
         {
             name: 'Json',
@@ -161,8 +148,9 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
 
     const codeMirrorRef = useRef(null);
     const codeMirrorRef2 = useRef(null);
+    let loggedIn = tokenHelper.auth();
 
-    const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
+    // const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
 
     const formatToCodeMirrorMode = {
         'application/json': 'javascript',
@@ -181,10 +169,10 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
           })
         : [];
 
-    useEffect(() => {
-        // console.log('it execs');
-        setLoggedIn(tokenHelper.auth());
-    }, [authState]);
+    // useEffect(() => {
+    //     console.log(tokenHelper.auth());
+    //     setLoggedIn(tokenHelper.auth());
+    // }, [authState]);
 
     // useEffect(() => {
     //     if (currentlyChosenOlderQuery) {
@@ -245,7 +233,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
     }, [windowResponse]);
 
     useEffect(() => {
-        // console.log(queryStateHTML);
         if (stateIsLoaded(queryStateHTML)) {
             setWindowResponseTable(queryStateHTML?.data?.data);
         }
@@ -295,14 +282,11 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         try {
             parser.parse(data);
         } catch (e) {
-            // console.log(e.message);
             let splitted = e.message.split(/\r?\n/);
-            // console.log(splitted);
             if (splitted.length === 4) {
                 let splitFirstLine = splitted[0].split(' ');
                 let lineNumber = splitFirstLine[splitFirstLine.length - 1];
                 lineNumber = lineNumber.substring(0, lineNumber.length - 1);
-                // console.log('line number is', lineNumber);
                 let mistakeStart = splitted[2].length;
                 let incorrectnessStart = splitted[1].replace('...', '');
                 let message = splitted[3];
@@ -342,7 +326,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
             <View style={{ flexDirection: 'row', paddingLeft: 42, paddingRight: 30 }}>
                 <View style={{ flex: 1, paddingTop: 20 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 20 }}>
-                        {/* <Text style={{ ...headers.H5(null, 'Medium') }}> Query url from: </Text> */}
                         <CustomInput
                             maxSize={130}
                             style={{ paddingRight: 20 }}
@@ -364,10 +347,8 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                             currentOption={format}
                             setCurrentOption={setFormat}
                         ></CustomizedSelects>
-                        {/* <TextField className={classes.root} id="standard-basic" label="Standard" color="primary" /> */}
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        {/* <Text style={{ ...headers.H5(null, 'Medium') }}> Query url from: </Text> */}
                         <CustomInput
                             label={'Timeout'}
                             style={{ paddingRight: 20 }}
@@ -383,52 +364,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                             setValue={setGraphNameIri}
                             maxSize={400}
                         ></CustomInput>
-
-                        {/* <TextField className={classes.root} id="standard-basic" label="Standard" color="primary" /> */}
                     </View>
-
-                    {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        {/* <Text style={{ ...headers.H5(null, 'Medium') }}> Query name </Text> */}
-
-                    {/* <CustomInput label={'Query name'} value={queryNameVal} setValue={setQueryNameVal}></CustomInput> */}
-                    {/* <Text style={{ ...headers.H5(null, 'Medium') }}> Open saved query </Text> */}
-                    {/* <CustomizedSelects
-                            options={savedQueryOptions}
-                            noSelectOpt={true}
-                            label={'Open saved query'}
-                            onSelect={value => {
-                                console.log(value);
-                                // console.log(JSON.parse(value));
-                                // setCurrentlyChosenOlderQuery(JSON.parse(value));
-                                // let parsed = JSON.parse(value);
-                                let newTab = {
-                                    sparqlQueryVal: value.queryString,
-                                    url: value.url,
-                                    graphNameIri: value.defaultDatasetName,
-                                    timeOutVal: value.timeout,
-                                    format: value.format,
-                                    queryNameVal: value.queryName + (value.queryNameSuffix ? value.queryNameSuffix : ''),
-                                };
-                                dispatch(getSavedQueryResultAction(value.format, value.id));
-                                createNewTab(newTab);
-                            }}
-                            currentOption={currentlyChosenOlderQuery}
-                            setCurrentOption={setCurrentlyChosenOlderQuery}
-                        ></CustomizedSelects> 
-
-                        {loggedIn && (
-                            <View style={{ flexDirection: 'row', paddingTop: 20, alignItems: 'center' }}>
-                                <Checkbox
-                                    checked={checkboxVal}
-                                    onChange={event => {
-                                        setCheckboxVal(event.target.checked);
-                                    }}
-                                    inputProps={{ 'aria-label': 'primary checkbox' }}
-                                />
-                                <Text style={{ ...headers.H6(null, 'Regular') }}> Save query on submit </Text>
-                            </View>
-                        )}
-                    </View> */}
 
                     <TextareaAutosize
                         hidden
@@ -444,62 +380,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                         placeholder="Minimum 3 rows"
                     />
 
-                    {/* {allQueries?.data?.data && (
-                        <select
-                            onChange={(event, value) => {
-                                // console.log(event.target.value);
-                                console.log(JSON.parse(event.target.value));
-                                setCurrentlyChosenOlderQuery(JSON.parse(event.target.value));
-                                let parsed = JSON.parse(event.target.value);
-                                let newTab = {
-                                    sparqlQueryVal: parsed.queryString,
-                                    url: parsed.url,
-                                    graphNameIri: parsed.defaultDatasetName,
-                                    timeOutVal: parsed.timeout,
-                                    format: parsed.format,
-                                    queryNameVal: parsed.queryName + (parsed.queryNameSuffix ? parsed.queryNameSuffix : ''),
-                                };
-                                dispatch(getSavedQueryResultAction(parsed.format, parsed.id));
-                                createNewTab(newTab);
-                            }}
-                        >
-                            <option el={null}>default</option>
-                            {allQueries?.data?.data.map(el => {
-                                return <option value={JSON.stringify(el)}>{el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : '')} </option>;
-                            })}
-                        </select>
-                    )}
-                    <input
-                        type="submit"
-                        onClick={() => {
-                            // eve.preventDefault();
-                            dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal));
-                            dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal));
-                            setResponseWindowFormat(formatToCodeMirrorMode[format]);
-                            if (checkboxVal) {
-                                dispatch(saveQueryAction(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryNameVal));
-                            }
-                        }}
-                    /> */}
-                    {/* {loggedIn && (
-                        <>
-                            <input
-                                type="text"
-                                value={queryNameVal}
-                                onChange={event => {
-                                    setQueryNameVal(event.target.value);
-                                }}
-                            />
-                            <input
-                                type="checkbox"
-                                name="saveResults"
-                                value={checkboxVal}
-                                onChange={event => {
-                                    setCheckboxVal(event.target.checked);
-                                }}
-                            />
-                        </>
-                    )} */}
                     <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                         <CustomizedSelects
                             label={'Theme'}
@@ -531,7 +411,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                                 }
                             }}
                         >
-                            Execute query
+                            run query
                         </Button>
                     </View>
                 </View>
@@ -542,7 +422,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                 className="custom-box box"
                 width={'100%'}
                 height={300}
-                style={{ border: '1px solid #DDDDDD' }}
+                style={{ border: '1px solid #DDDDDD', marginRight: 20 }}
                 handleSize={[8, 8]}
                 resizeHandles={['s']}
                 handle={
@@ -581,9 +461,11 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                     }}
                 />
             </ResizableBox>
-            <View style={{ marginTop: 20 }}>
-                <View style={{ flexDirection: 'row' }}>
+            <View style={{ marginTop: 20, borderBottom: `1px solid ${colors.borderGrayColor()}` }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Button
+                        style={{ borderBottom: previewType === 'response' ? '2px solid orange' : null, borderRadius: 0 }}
+                        startIcon={<ListAltIcon color={previewType === 'response' ? 'primary' : 'secondary'}></ListAltIcon>}
                         onClick={() => {
                             setPreviewType('response');
                         }}
@@ -591,25 +473,44 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                         Response Preview
                     </Button>
                     <Button
+                        style={{ borderBottom: previewType === 'table' ? '2px solid orange' : null, borderRadius: 0 }}
+                        startIcon={<TableChartIcon color={previewType === 'table' ? 'primary' : 'secondary'}></TableChartIcon>}
                         onClick={() => {
                             setPreviewType('table');
                         }}
                     >
                         Table
                     </Button>
+                    <View style={{ flex: 1 }}></View>
+                    {/* <button */}
+                    <GetAppIcon
+                        color={'secondary'}
+                        style={{ cursor: 'pointer', marginRight: 35 }}
+                        fontSize={'large'}
+                        onClick={() => {
+                            if (format != 'application/json') {
+                                var blob = new Blob([queryState.data.data], { type: `${format};charset=utf-8` });
+                            } else {
+                                var blob = new Blob([JSON.stringify(queryState.data.data)], { type: `${format};charset=utf-8` });
+                            }
+
+                            FileSaver.saveAs(blob, queryNameVal);
+                        }}
+                    ></GetAppIcon>
+
+                    {/* </button> */}
                 </View>
             </View>
-            <View>
+            <View style={{ paddingTop: 20, marginRight: 20 }}>
                 {previewType === 'response' && (
                     <ResizableBox
                         className="custom-box box"
                         // width={100}
                         height={responseWindowHeight}
-                        style={{ border: '1px solid #DDDDDD', marginTop: 20, marginBottom: 100 }}
+                        style={{ border: '1px solid #DDDDDD', marginBottom: 100 }}
                         handleSize={[8, 8]}
                         resizeHandles={['s']}
                         onResize={(ev, data) => {
-                            // console.log(data.size.height);
                             onResponseWindowResize(data);
                         }}
                         handle={
@@ -652,7 +553,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                             className="custom-box box"
                             height={responseWindowHeight}
                             // width={100}
-                            style={{ border: '1px solid #DDDDDD', marginTop: 20, marginBottom: 100 }}
+                            style={{ border: '1px solid #DDDDDD', marginBottom: 100 }}
                             handleSize={[8, 8]}
                             resizeHandles={['s']}
                             onResize={(ev, data) => {
@@ -679,15 +580,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                     </>
                 )}
             </View>
-
-            {/* <button
-                onClick={() => {
-                    var blob = new Blob([queryState.data.data], { type: `${format};charset=utf-8` });
-                    FileSaver.saveAs(blob, queryNameVal);
-                }}
-            >
-                Download
-            </button> */}
         </View>
     );
 }

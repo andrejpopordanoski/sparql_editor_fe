@@ -58,7 +58,9 @@ const BootstrapInput2 = withStyles(theme => ({
         // width: '100%',
         // height: 'auto',
         minWidth: 100,
-        padding: '8px 8px',
+        padding: '10px 15px',
+        borderTopLeftRadius: '10px',
+        borderTopRightRadius: '10px',
         transition: theme.transitions.create(['border-color', 'box-shadow']),
         // Use the system font instead of the default Roboto font.
         ...headers.H6(colors.primaryText(), 'Medium'),

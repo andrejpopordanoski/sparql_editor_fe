@@ -11,11 +11,11 @@ import Editor from './Editor';
 import { useTabConfig } from './useTabConfig';
 import AddIcon from '@material-ui/icons/Add';
 import { palette } from 'styles/pallete';
-import { headers } from 'styles';
+import { colors, headers } from 'styles';
 import SideMenu from 'module/screens/SideMenu';
 import { getAllQueriesAction } from 'redux/actions/data.actions';
 export default function EditorWrapper({ history }) {
-    const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
+    // const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
     // const [currentTab, setCurrentTab] = useState(0);
     // const [tabs, setTabs] = useState(['Unsaved query']);
     const allQueries = useSelector(state => state.allQueries);
@@ -31,8 +31,6 @@ export default function EditorWrapper({ history }) {
     // const tabConfing1 = useTabConfig();
     // const tabConfing2 = useTabConfig();
 
-    // console.log(tabConfing2 === tabConfing1, 'are those same?');
-
     const classes = useStyles();
 
     const authState = useSelector(state => state.auth);
@@ -41,10 +39,11 @@ export default function EditorWrapper({ history }) {
     const handleChange = (event, newValue) => {
         useTabs.setCurrentTab(newValue);
     };
+    let loggedIn = tokenHelper.auth();
 
-    useEffect(() => {
-        setLoggedIn(tokenHelper.auth());
-    }, [authState]);
+    // useEffect(() => {
+    //     setLoggedIn(tokenHelper.auth());
+    // }, [authState]);
 
     useEffect(() => {
         if (loggedIn) {
@@ -52,38 +51,14 @@ export default function EditorWrapper({ history }) {
         }
     }, []);
 
+    console.log(loggedIn);
+
     return (
         <View style={{ flex: 1 }}>
             <View>
                 <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', padding: 10, backgroundColor: '#303030' }}>
                     <View style={{ flex: 1, flexDirection: 'row' }}>
                         <Text style={{ ...headers.H3('white'), paddingLeft: 20 }}> SPARQL Editor </Text>
-                        {/* {loggedIn && (
-                            <CustomizedSelects
-                                options={savedQueryOptions}
-                                // noSelectOpt={true}
-                                label={'Open saved query'}
-                                // outlined={true}
-                                onSelect={value => {
-                                    // console.log(value);
-                                    // // console.log(JSON.parse(value));
-                                    // // setCurrentlyChosenOlderQuery(JSON.parse(value));
-                                    // // let parsed = JSON.parse(value);
-                                    // let newTab = {
-                                    //     sparqlQueryVal: value.queryString,
-                                    //     url: value.url,
-                                    //     graphNameIri: value.defaultDatasetName,
-                                    //     timeOutVal: value.timeout,
-                                    //     format: value.format,
-                                    //     queryNameVal: value.queryName + (value.queryNameSuffix ? value.queryNameSuffix : ''),
-                                    // };
-                                    // dispatch(getSavedQueryResultAction(value.format, value.id));
-                                    // createNewTab(newTab);
-                                }}
-                                currentOption={useTabs.currentlyChosenOlderQuery}
-                                setCurrentOption={useTabs.setCurrentlyChosenOlderQuery}
-                            ></CustomizedSelects>
-                        )} */}
                     </View>
                     {loggedIn && (
                         <Button
@@ -101,8 +76,9 @@ export default function EditorWrapper({ history }) {
                     {!loggedIn && (
                         <>
                             <Button
-                                variant="outlined"
+                                variant="contained"
                                 color="primary"
+                                style={{ marginRight: 20 }}
                                 onClick={() => {
                                     // dispatch(lo);
                                     history.replace('/login');
@@ -125,7 +101,7 @@ export default function EditorWrapper({ history }) {
                 </View>
             </View>
             <View style={{ flexDirection: 'row' }}>
-                <SideMenu useTabConfig={useTabs}></SideMenu>
+                {loggedIn && <SideMenu useTabConfig={useTabs}></SideMenu>}
                 <View style={{ flex: 1 }}>
                     <View>
                         <div>
@@ -145,8 +121,10 @@ export default function EditorWrapper({ history }) {
 
                                 <View
                                     style={{
-                                        margin: 5,
-                                        border: `2px solid ${palette.secondary.light}`,
+                                        marginTop: 5,
+                                        border: `1px solid ${colors.backgroundLightGray2()}`,
+                                        borderBottom: '2px solid white',
+                                        padding: '0 2px',
                                         justifyContent: 'center',
                                         alignItems: 'center',
                                     }}
@@ -161,14 +139,15 @@ export default function EditorWrapper({ history }) {
                                         className="plus alt"
                                     ></div> */}
                                     <AddIcon
-                                        color="secondary"
+                                        // style={{ color: palette.secondary.light }}
+                                        // color="secondary light"
                                         fontSize={'large'}
                                         onClick={() => {
                                             // setTabs([...tabs, 'Unsaved query']);
                                             useTabs.createNewTab();
                                             // useTabs.setCurrentTab(tabs.length);
                                         }}
-                                        style={{ width: 30, height: 30 }}
+                                        style={{ width: 30, height: 30, color: palette.secondary.light }}
                                     />
                                     {/* <Button style={{ width: 30, height: 30 }} startIcon={<AddIcon />}></Button> */}
                                 </View>

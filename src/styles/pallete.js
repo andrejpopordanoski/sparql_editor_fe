@@ -8,8 +8,8 @@ export const palette = {
         // contrastText: will be calculated to contrast with palette.primary.main
     },
     secondary: {
-        light: '#B75174',
-        main: '#AB3B61',
+        light: `rgb(150, 150, 150)`,
+        main: `rgb(48, 48, 48)`,
         // dark: will be calculated from palette.secondary.main,
         // contrastText: '#ffcc00',
     },

@@ -6,9 +6,11 @@ import Text from '../components/Text';
 import View from '../components/View';
 import ToggleOffIcon from '@material-ui/icons/ToggleOff';
 import ToggleOnIcon from '@material-ui/icons/ToggleOn';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { getSavedQueryResultAction } from 'redux/actions/data.actions';
 export default function SideMenu({ useTabConfig }) {
     // const [saveResponseToggle, setSaveResponseToggle] = useState(false);
+    const dispatch = useDispatch(0);
 
     const { checkboxVal, setCheckboxVal, setCurrentlyChosenOlderQuery, createNewTab } = useTabConfig;
     const allQueries = useSelector(state => state.allQueries);
@@ -53,16 +55,20 @@ export default function SideMenu({ useTabConfig }) {
                     }}
                 >
                     <View
-                        style={{ paddingRight: 10 }}
+                        style={{ paddingRight: 10, cursor: 'pointer' }}
                         onClick={() => {
                             setCheckboxVal(!checkboxVal);
                         }}
                     >
-                        {!checkboxVal && <ToggleOffIcon fontSize="large"> </ToggleOffIcon>}
+                        {!checkboxVal && (
+                            <ToggleOffIcon color="secondary" fontSize="large">
+                                {' '}
+                            </ToggleOffIcon>
+                        )}
                         {checkboxVal && <ToggleOnIcon fontSize="large" color="primary"></ToggleOnIcon>}
                     </View>
                     <View>
-                        <Text style={{ ...headers.H5(null, 'Light') }}> Save queries on execute </Text>
+                        <Text style={{ ...headers.H5(null, 'Light') }}> Save queries on run </Text>
                     </View>
                 </View>
                 <View>
@@ -81,7 +87,7 @@ export default function SideMenu({ useTabConfig }) {
                                             format: el.format,
                                             queryNameVal: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''),
                                         };
-                                        // dispatch(getSavedQueryResultAction(el.format, el.id));
+                                        dispatch(getSavedQueryResultAction(el.format, el.id));
                                         createNewTab(newTab);
                                     }}
                                     name={el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : '')}

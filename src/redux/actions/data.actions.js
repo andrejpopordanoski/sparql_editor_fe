@@ -13,8 +13,6 @@ export const processQuery = (url, graphNameIri, sparqlQueryVal, format, timeOutV
     data.set('format', format);
     data.set('timeout', timeOutVal);
 
-    console.log(url, graphNameIri, sparqlQueryVal, format, timeOutVal);
-
     dispatch({
         type: buildActionType(EXECUTE_QUERY, ActionStatus.START),
     });

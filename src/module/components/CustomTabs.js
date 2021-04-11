@@ -4,6 +4,7 @@ import { palette } from 'styles/pallete';
 import View from './View';
 import AddIcon from '@material-ui/icons/Add';
 import { colors } from 'styles';
+import CloseIcon from '@material-ui/icons/Close';
 export const AntTabs = withStyles(theme => ({
     root: {
         borderBottom: '1px solid #e8e8e8',
@@ -12,7 +13,7 @@ export const AntTabs = withStyles(theme => ({
         },
     },
     indicator: {
-        backgroundColor: palette.secondary.main,
+        backgroundColor: palette.primary.main,
     },
 }))(Tabs);
 
@@ -29,7 +30,7 @@ export const AntTab = withStyles(theme => ({
         // marginRight: theme.spacing(4),
         fontFamily: ['Helvetica-Medium'].join(','),
         '&:hover': {
-            color: palette.secondary.light,
+            color: colors.borderGrayColor(),
             opacity: 1,
         },
         '&$selected': {
@@ -37,7 +38,7 @@ export const AntTab = withStyles(theme => ({
             fontWeight: theme.typography.fontWeightMedium,
         },
         '&:focus': {
-            color: 'palette.secondary.light',
+            // color: palette.primary.main,
         },
     },
     selected: {},
@@ -68,14 +69,19 @@ export const AntTab = withStyles(theme => ({
             }}
         >
             <Tab disableRipple {...props} />
-
-            <div
+            <CloseIcon
+                onClick={() => {
+                    props.onClosePress();
+                }}
+                style={{ width: 20, height: 20, opacity: closeButtonVisible ? 1 : 0, paddingRight: 5 }}
+            ></CloseIcon>
+            {/* <div
                 style={{ width: 25, height: 25, opacity: closeButtonVisible ? 1 : 0 }}
                 onClick={() => {
                     props.onClosePress();
                 }}
-                className="close alt2"
-            ></div>
+                // className="close alt2"
+            ></div> */}
         </div>
     );
 });

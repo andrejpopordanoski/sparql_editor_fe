@@ -8,6 +8,7 @@ import { passwordLoginAction } from 'redux/actions/auth.actions';
 import { stateHasFailed, stateIsLoaded } from 'services/stateHelpers';
 import { tokenHelper } from 'services/tokenHelpers';
 import { basicStyles, colors, headers } from 'styles';
+import { palette } from 'styles/pallete';
 
 export default function Login({ history }) {
     const [username, setUsername] = useState('');
@@ -25,8 +26,6 @@ export default function Login({ history }) {
     let loggedIn = tokenHelper.auth();
 
     useEffect(() => {
-        console.log('whadup', loggedIn);
-
         if (stateHasFailed(authState)) {
             setErrorMsg(authState.error);
         }
@@ -56,7 +55,16 @@ export default function Login({ history }) {
     };
 
     return (
-        <View style={{ height: '100vh', flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+        <View
+            style={{
+                height: '100vh',
+                backgroundColor: colors.background(10),
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
             <View style={{ width: 400, padding: 20, backgroundColor: '#FFFFFF', boxShadow: '-10px 12px 15px -1px' + ' rgba(0,0,0,0.4)' }}>
                 <Text
                     style={{
@@ -115,7 +123,7 @@ export default function Login({ history }) {
                     style={{
                         alignSelf: 'flex-end',
                         marginTop: 20,
-                        backgroundColor: colors.themeActive(),
+                        backgroundColor: palette.primary.main,
                         color: 'white',
                     }}
                     onClick={() => {
