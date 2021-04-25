@@ -48,7 +48,7 @@ const perform = (method, url, data, headers, auth) => {
 
 export default {
     get: (path, headers) => {
-        console.log('=====GET REQUEST FROM=======' + API_ENDPOINT + path);
+        // console.log('=====GET REQUEST FROM=======' + API_ENDPOINT + path);
         return perform('GET', API_ENDPOINT + path, {}, headers || {}, {});
     },
     post: (path, data, headers, auth) => perform('POST', API_ENDPOINT + path, data, headers || {}, auth || {}),

@@ -13,23 +13,25 @@ import AddIcon from '@material-ui/icons/Add';
 import { palette } from 'styles/pallete';
 import { colors, headers } from 'styles';
 import SideMenu from 'module/screens/SideMenu';
-import { getAllQueriesAction } from 'redux/actions/data.actions';
+import { getAllQueriesAction, getSinglePublicQueryAction } from 'redux/actions/data.actions';
+import { usePagination } from './usePagination';
+import queryString from 'query-string';
+
 export default function EditorWrapper({ history }) {
     // const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
     // const [currentTab, setCurrentTab] = useState(0);
     // const [tabs, setTabs] = useState(['Unsaved query']);
     const allQueries = useSelector(state => state.allQueries);
 
-    const savedQueryOptions = allQueries.data.data
-        ? allQueries?.data?.data.map(el => {
-              return { name: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''), value: el };
-          })
-        : [];
-    const useTabs = useTabConfig();
-
-    // const [tabConfigs, setTabConfigs] = useState([useTabConfig(), useTabConfig()]);
-    // const tabConfing1 = useTabConfig();
-    // const tabConfing2 = useTabConfig();
+    // const savedQueryOptions = allQueries.data.data
+    //     ? allQueries?.data?.data.map(el => {
+    //           return { name: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''), value: el };
+    //       })
+    //     : [];
+    const useTabs = useTabConfig(history);
+    const usePaginationPublic = usePagination();
+    const usePaginationPrivate = usePagination();
+    const singlePublicQuery = useSelector(state => state.singlePublicQuery);
 
     const classes = useStyles();
 
@@ -39,19 +41,48 @@ export default function EditorWrapper({ history }) {
     const handleChange = (event, newValue) => {
         useTabs.setCurrentTab(newValue);
     };
-    let loggedIn = tokenHelper.auth();
-
-    // useEffect(() => {
-    //     setLoggedIn(tokenHelper.auth());
-    // }, [authState]);
+    let loggedIn = authState.data?.data?.access_token;
 
     useEffect(() => {
-        if (loggedIn) {
-            dispatch(getAllQueriesAction());
+        if (history.location.search) {
+            console.log(history.location.search);
+            let params = queryString.parse(history.location.search);
+            console.log(params);
+            if (params.query_id) {
+                dispatch(getSinglePublicQueryAction(params.query_id));
+                // useTabs.createNewTab();
+            }
         }
     }, []);
 
-    console.log(loggedIn);
+    useEffect(() => {
+        if (singlePublicQuery.data.data) {
+            let el = singlePublicQuery.data.data;
+            let newTab = {
+                sparqlQueryVal: el.queryString,
+                url: el.url,
+                graphNameIri: el.defaultDatasetName,
+                timeOutVal: el.timeout,
+                format: el.format,
+                queryNameVal: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''),
+            };
+            // dispatch(getSavedQueryResultAction(el.format, el.id));
+            useTabs.createNewTab(newTab, true, el.id);
+
+            history.replace('/sparql?query_id=' + el.id);
+        }
+    }, [singlePublicQuery]);
+
+    // useEffect(() => {
+    //     console.log(history);
+    //     if (history.location.search) {
+    //         let params = queryString.parse(history.location.search);
+    //         console.log(params);
+    //         if (params.query_id) {
+    //             useTabs.createNewTab();
+    //         }
+    //     }
+    // }, [useTabs.localhostLoaded]);
 
     return (
         <View style={{ flex: 1 }}>
@@ -101,7 +132,14 @@ export default function EditorWrapper({ history }) {
                 </View>
             </View>
             <View style={{ flexDirection: 'row' }}>
-                {loggedIn && <SideMenu useTabConfig={useTabs}></SideMenu>}
+                {loggedIn && (
+                    <SideMenu
+                        history={history}
+                        useTabConfig={useTabs}
+                        usePaginationPublic={usePaginationPublic}
+                        usePaginationPrivate={usePaginationPrivate}
+                    ></SideMenu>
+                )}
                 <View style={{ flex: 1 }}>
                     <View>
                         <div>
@@ -112,7 +150,6 @@ export default function EditorWrapper({ history }) {
                                             label={el}
                                             key={index}
                                             onClosePress={() => {
-                                                console.log('pressed close');
                                                 useTabs.closeTab(index);
                                             }}
                                         />

@@ -39,7 +39,6 @@ export default function Login({ history }) {
     }
 
     const login = () => {
-        console.log(username, password);
         if (!username.length) {
             setUsernameError(true);
             setUsernameErrorMessage('username cannot be empty');

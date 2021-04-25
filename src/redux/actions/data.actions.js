@@ -1,7 +1,23 @@
 import { ActionStatus } from 'redux/core/ActionStatus';
-import { GET_ALL_QUERIES_BY_USER_API, GET_SAVED_QUERY_RESULT_API, QUERY_API, SAVE_QUERY_API } from 'services/api';
+import {
+    GET_ALL_PUBLIC_QUERIES_API,
+    GET_ALL_QUERIES_BY_USER_API,
+    GET_SAVED_QUERY_RESULT_API,
+    QUERY_API,
+    SAVE_QUERY_API,
+    GET_SINGLE_PUBLIC_QUERY_API,
+} from 'services/api';
 import { PlainApiRequest, PostRequestWithData } from 'services/apiRequests';
-import { EXAMPLE_ACTION, EXECUTE_QUERY_HTML, EXECUTE_QUERY, SAVE_QUERY, GET_ALL_QUERIES, GET_SAVED_QUERY_RESULT } from '../constants/main.constants';
+import {
+    EXAMPLE_ACTION,
+    EXECUTE_QUERY_HTML,
+    EXECUTE_QUERY,
+    SAVE_QUERY,
+    GET_ALL_QUERIES,
+    GET_SAVED_QUERY_RESULT,
+    GET_ALL_QUERIES_PUBLIC,
+    GET_SINGLE_PUBLIC_QUERY,
+} from '../constants/main.constants';
 import { buildActionType } from './buildActionType';
 
 export const processQuery = (url, graphNameIri, sparqlQueryVal, format, timeOutVal) => async dispatch => {
@@ -36,7 +52,7 @@ export const processQueryHTML = (url, graphNameIri, sparqlQueryVal, timeOutVal) 
     data.set('url', url);
     data.set('defaultGraphSetIri', graphNameIri);
     data.set('queryStr', sparqlQueryVal);
-    data.set('format', 'text/html');
+    data.set('format', 'application/json');
 
     data.set('timeout', timeOutVal);
     data.set('forHtml', true);
@@ -58,7 +74,7 @@ export const processQueryHTML = (url, graphNameIri, sparqlQueryVal, timeOutVal) 
     }
 };
 
-export const saveQueryAction = (url, defaultGraphSetIri, queryStr, format, timeout, queryNameVal) => async dispatch => {
+export const saveQueryAction = (url, defaultGraphSetIri, queryStr, format, timeout, queryNameVal, privateModifierCheckBoxVal) => async dispatch => {
     let data = new FormData();
     data.set('url', url);
     data.set('defaultGraphSetIri', defaultGraphSetIri);
@@ -67,6 +83,7 @@ export const saveQueryAction = (url, defaultGraphSetIri, queryStr, format, timeo
     data.set('format', format);
     data.set('timeout', timeout);
     data.set('queryName', queryNameVal);
+    data.set('privateAccess', privateModifierCheckBoxVal);
 
     dispatch({
         type: buildActionType(SAVE_QUERY, ActionStatus.START),
@@ -81,20 +98,53 @@ export const saveQueryAction = (url, defaultGraphSetIri, queryStr, format, timeo
                 ...response,
             },
         });
-        dispatch(getAllQueriesAction());
+        // dispatch(getAllQueriesAction());
     }
 };
 
-export const getAllQueriesAction = () => async dispatch => {
+export const getAllQueriesAction = page => async dispatch => {
     dispatch({
         type: buildActionType(GET_ALL_QUERIES, ActionStatus.START),
     });
 
-    const response = await PlainApiRequest(GET_ALL_QUERIES_BY_USER_API);
+    const response = await PlainApiRequest(GET_ALL_QUERIES_BY_USER_API(page));
 
     if (response.success) {
         dispatch({
             type: buildActionType(GET_ALL_QUERIES, ActionStatus.DONE),
+            payload: {
+                ...response,
+            },
+        });
+    }
+};
+
+export const getAllPublicQueriesAction = page => async dispatch => {
+    dispatch({
+        type: buildActionType(GET_ALL_QUERIES_PUBLIC, ActionStatus.START),
+    });
+
+    const response = await PlainApiRequest(GET_ALL_PUBLIC_QUERIES_API(page));
+
+    if (response.success) {
+        dispatch({
+            type: buildActionType(GET_ALL_QUERIES_PUBLIC, ActionStatus.DONE),
+            payload: {
+                ...response,
+            },
+        });
+    }
+};
+export const getSinglePublicQueryAction = queryId => async dispatch => {
+    dispatch({
+        type: buildActionType(GET_SINGLE_PUBLIC_QUERY, ActionStatus.START),
+    });
+
+    const response = await PlainApiRequest(GET_SINGLE_PUBLIC_QUERY_API(queryId));
+
+    if (response.success) {
+        dispatch({
+            type: buildActionType(GET_SINGLE_PUBLIC_QUERY, ActionStatus.DONE),
             payload: {
                 ...response,
             },

@@ -7,7 +7,7 @@ export const handleSuccess = (response, rest) => {
 };
 
 export const handleError = statusCode => {
-    console.log(statusCode);
+    // console.log(statusCode);
     return {
         success: false,
     };

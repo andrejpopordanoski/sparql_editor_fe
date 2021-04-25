@@ -1,10 +1,9 @@
-import logo from './logo.svg';
 import './App.css';
 import { Router, Switch, Route, Redirect } from 'module/router/index';
 
 import { Provider } from 'react-redux';
 import store from 'redux/config/store';
-import Editor from 'module/screens/Editor';
+
 import { createMuiTheme, ThemeProvider } from '@material-ui/core';
 import { palette } from 'styles/pallete';
 import Login from 'module/screens/Login';

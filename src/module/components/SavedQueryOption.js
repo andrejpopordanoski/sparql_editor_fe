@@ -3,7 +3,7 @@ import { colors, headers } from 'styles';
 import Text from './Text';
 import View from './View';
 
-export default function SavedQueryOption({ name, url, onClick }) {
+export default function SavedQueryOption({ name, url, onClick, author, showAuthor }) {
     const [isHovered, setIsHovered] = useState(false);
     return (
         <View
@@ -27,6 +27,11 @@ export default function SavedQueryOption({ name, url, onClick }) {
         >
             <Text style={{ ...headers.H5(null, 'Italic'), paddingBottom: 5 }}> {name} </Text>
             <Text style={{ ...headers.H6(null, 'Light'), wordWrap: 'break-word' }}>{url}</Text>
+            {showAuthor && (
+                <Text style={{ ...headers.H6(null, 'Light', 12), wordWrap: 'break-word', paddingTop: 5 }}>
+                    by <Text style={{ ...headers.H6(null, 'Bold', 12) }}>{author}</Text>
+                </Text>
+            )}
         </View>
     );
 }

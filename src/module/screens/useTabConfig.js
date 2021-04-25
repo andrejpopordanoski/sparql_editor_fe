@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 
 import { tokenHelper } from 'services/tokenHelpers';
 
-export const useTabConfig = () => {
+export const useTabConfig = history => {
     const defaultNewTab = {
         sparqlQueryVal: `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -17,7 +17,7 @@ SELECT * WHERE {
         format: 'application/json',
         responseWindowFormat: 'javascript',
         currentlyChosenOlderQuery: null,
-        checkboxVal: false,
+        saveCheckBoxVal: false,
         queryNameVal: 'Untitled',
         previewType: 'response',
         theme: 'darcula',
@@ -27,8 +27,62 @@ SELECT * WHERE {
         tableResponse: '',
     };
     const [tabs, setTabs] = useState([defaultNewTab]);
+    const [localhostLoaded, setLocalhostLoaded] = useState(false);
+    const [triggerCodeMirrorStateChange, setTrigger] = useState(false);
+
     const [currentTab, setCurrentTab] = useState(0);
     const [tabsLabels, setTabsLabels] = useState(['Untitled']);
+    const [privateModifierCheckBoxVal, setPrivateModifierCheckBoxVal] = useState(false);
+
+    useEffect(() => {
+        console.log('on start only');
+        let tabsDataString = localStorage.getItem('persist:tabs');
+        let tabsLabelsString = localStorage.getItem('persist:tabsLabels');
+
+        if (tabsDataString) {
+            try {
+                let tabsFromString = JSON.parse(tabsDataString);
+
+                let tabsLabelsFromString = JSON.parse(tabsLabelsString);
+                console.log('tabs from string');
+                console.log(tabsFromString);
+                setTabs(tabsFromString);
+                setTabsLabels(tabsLabelsFromString);
+                setLocalhostLoaded(true);
+            } catch (e) {
+                console.log('Something went wrong parsing saved tabs');
+            }
+        }
+
+        // setSparqlQueryVal(tabs[currentTab].sparqlQueryVal);
+    }, []);
+
+    useEffect(() => {
+        if (history && tabs[currentTab].isPublic) {
+            history.replace('/sparql?query_id=' + tabs[currentTab].queryId);
+        } else if (history) {
+            if (localhostLoaded) {
+                history.replace('/sparql');
+            }
+        }
+    }, [currentTab]);
+
+    useEffect(() => {
+        // console.log('this useffect is in effect');
+
+        let tabsToSave = [];
+        tabs.forEach(tab => {
+            let { currentMarker, windowResponse, tableResponse, ...rest } = tab;
+            tabsToSave.push({ ...rest, windowResponse: '', tableResponse: '', currentMarker: null });
+        });
+
+        localStorage.setItem('persist:tabs', JSON.stringify(tabsToSave));
+        localStorage.setItem('persist:tabsLabels', JSON.stringify(tabsLabels));
+    }, [tabs]);
+
+    useEffect(() => {}, []);
+
+    // const [tabsLabels, setTabsLabels] = useState(['Untitled']);
 
     // const [sparqlQueryVal, setSparqlQueryValState] = useState(defaultNewTab.sparqlQueryVal);
     // const [url, setUrlState] = useState(defaultNewTab.url);
@@ -37,7 +91,7 @@ SELECT * WHERE {
     // const [format, setFormatState] = useState(defaultNewTab.format);
     // const [responseWindowFormat, setResponseWindowFormatState] = useState(defaultNewTab.responseWindowFormat);
     // const [currentlyChosenOlderQuery, setCurrentlyChosenOlderQueryState] = useState(defaultNewTab.currentlyChosenOlderQuery);
-    // const [checkboxVal, setCheckboxValState] = useState(defaultNewTab.checkboxVal);
+    // const [saveCheckBoxVal, setSaveCheckboxValState] = useState(defaultNewTab.saveCheckBoxVal);
     // const [queryNameVal, setQueryNameValState] = useState(defaultNewTab.queryNameVal);
     // const [previewType, setPreviewTypeState] = useState(defaultNewTab.previewType);
     // const [theme, setThemeState] = useState(defaultNewTab.theme);
@@ -46,7 +100,14 @@ SELECT * WHERE {
     // const [responseWindowResponse, setWindowResponseState] = useState('');
     // const [responseWindowResponseTable, setWindowResponseTableState] = useState('');
 
-    function createNewTab(newTab) {
+    function createNewTab(newTab, isPublic, queryId) {
+        // console.log(queryId);
+        let oldTabIndex = tabs.findIndex(el => el.queryId == queryId);
+        console.log('creating', oldTabIndex);
+        if (oldTabIndex != -1 && queryId != undefined) {
+            setCurrentTab(oldTabIndex);
+            return;
+        }
         if (!newTab) {
             setTabsLabels([...tabsLabels, 'Untitled']);
             tabs.push(defaultNewTab);
@@ -55,6 +116,8 @@ SELECT * WHERE {
             let fullNewTab = {
                 ...defaultNewTab,
                 ...newTab,
+                isPublic: isPublic,
+                queryId: queryId,
             };
             tabs.push(fullNewTab);
         }
@@ -66,8 +129,10 @@ SELECT * WHERE {
         if (tabs.length > 1) {
             tabs.splice(tabIndex, 1);
             tabsLabels.splice(tabIndex, 1);
-            if (currentTab >= tabIndex) {
+            if (currentTab >= tabIndex && currentTab > 0) {
                 setCurrentTab(currentTab - 1);
+            } else {
+                setTrigger(!triggerCodeMirrorStateChange);
             }
 
             setTabs([...tabs]);
@@ -131,10 +196,10 @@ SELECT * WHERE {
         setTabs([...tabs]);
     }
 
-    function setCheckboxVal(data) {
+    function setSaveCheckboxVal(data) {
         tabs[currentTab] = {
             ...tabs[currentTab],
-            checkboxVal: data,
+            saveCheckBoxVal: data,
         };
         setTabs([...tabs]);
     }
@@ -212,8 +277,8 @@ SELECT * WHERE {
         setResponseWindowFormat: setResponseWindowFormat,
         currentlyChosenOlderQuery: tabs[currentTab]?.currentlyChosenOlderQuery,
         setCurrentlyChosenOlderQuery: setCurrentlyChosenOlderQuery,
-        checkboxVal: tabs[currentTab]?.checkboxVal,
-        setCheckboxVal: setCheckboxVal,
+        saveCheckBoxVal: tabs[currentTab]?.saveCheckBoxVal,
+        setSaveCheckboxVal: setSaveCheckboxVal,
         queryNameVal: tabs[currentTab]?.queryNameVal,
         setQueryNameVal: setQueryNameVal,
         previewType: tabs[currentTab]?.previewType,
@@ -234,5 +299,9 @@ SELECT * WHERE {
         tabsLabels,
         setTabsLabels,
         closeTab: removeTab,
+        privateModifierCheckBoxVal,
+        setPrivateModifierCheckBoxVal,
+        localhostLoaded,
+        triggerCodeMirrorStateChange,
     };
 };

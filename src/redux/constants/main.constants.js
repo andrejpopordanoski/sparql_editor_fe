@@ -24,6 +24,16 @@ export const GET_ALL_QUERIES = {
     action: Action.HANDLE,
 };
 
+export const GET_ALL_QUERIES_PUBLIC = {
+    entity: 'GET_ALL_QUERIES_PUBLIC',
+    action: Action.HANDLE,
+};
+
+export const GET_SINGLE_PUBLIC_QUERY = {
+    entity: 'GET_SINGLE_PUBLIC_QUERY',
+    action: Action.HANDLE,
+};
+
 export const GET_SAVED_QUERY_RESULT = {
     entity: 'GET_SAVED_QUERY_RESULT',
     action: Action.HANDLE,

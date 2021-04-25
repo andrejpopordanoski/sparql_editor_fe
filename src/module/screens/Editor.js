@@ -1,10 +1,9 @@
-import { Button, Checkbox, FormControl, Input, makeStyles, OutlinedInput, TextareaAutosize, TextField } from '@material-ui/core';
+import { Button, TextareaAutosize } from '@material-ui/core';
 import React, { useEffect, useRef, useState } from 'react';
 import { basicStyles, colors, headers } from 'styles';
 import { InputLabel } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllQueriesAction, getSavedQueryResultAction, processQuery, processQueryHTML, saveQueryAction } from 'redux/actions/data.actions';
-import { logoutAction } from 'redux/actions/auth.actions';
 
 import { themes } from 'static';
 import './Editor.css';
@@ -28,9 +27,9 @@ import 'codemirror/addon/fold/indent-fold';
 import 'codemirror/addon/fold/markdown-fold';
 import 'codemirror/addon/fold/comment-fold';
 import 'codemirror/addon/fold/foldgutter.css';
-import { validateEmail } from 'services/stringHelpers';
+
 import CustomInput from 'module/components/CustomInput';
-import NumericInput from 'material-ui-numeric-input';
+
 import CustomizedSelects from 'module/components/CustomSelect';
 // import playIcon from 'assets/icons/play.png';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
@@ -38,6 +37,7 @@ import ResizableBoxHandle from 'module/components/ResizableBoxHandle';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import TableChartIcon from '@material-ui/icons/TableChart';
 import ListAltIcon from '@material-ui/icons/ListAlt';
+import DataTable from 'react-data-table-component';
 // import { useTabConfig } from './useTabConfig';
 // import { useTabConfig } from './useTabConfig';
 require('codemirror/mode/sparql/sparql');
@@ -59,17 +59,11 @@ var htmlToReactParser = new HtmlToReactParser();
 const SparqlParser = require('sparqljs').Parser;
 const parser = new SparqlParser();
 
-// const useStyles = makeStyles(theme => ({
-//     root: {
-//         display: 'flex',
-//         flexWrap: 'wrap',
-//     },
-//     margin: {
-//         margin: theme.spacing(1),
-//     },
-// }));
 export default function Editor({ history, style, currentTab, index, useTabConfig }) {
     // const classes = useStyles();
+    // const controller = new AbortController();
+    // const signal = controller.signal;
+
     const {
         sparqlQueryVal,
         setSparqlQueryVal,
@@ -85,8 +79,8 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         setResponseWindowFormat,
         currentlyChosenOlderQuery,
         setCurrentlyChosenOlderQuery,
-        checkboxVal,
-        setCheckboxVal,
+        saveCheckBoxVal,
+        setSaveCheckboxVal,
         queryNameVal,
         setQueryNameVal,
         previewType,
@@ -102,6 +96,10 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         setWindowResponseTable,
         windowResponseTable,
         createNewTab,
+        privateModifierCheckBoxVal,
+        setPrivateModifierCheckBoxVal,
+        localhostLoaded,
+        triggerCodeMirrorStateChange,
     } = useTabConfig;
 
     const formatOptions = [
@@ -140,6 +138,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
     ];
 
     const dispatch = useDispatch();
+
     const authState = useSelector(state => state.auth);
     const queryState = useSelector(state => state.query);
     const queryStateHTML = useSelector(state => state.queryHTML);
@@ -148,7 +147,9 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
 
     const codeMirrorRef = useRef(null);
     const codeMirrorRef2 = useRef(null);
-    let loggedIn = tokenHelper.auth();
+    let loggedIn = authState.data?.data?.access_token;
+
+    const [columns, setColumns] = useState([]);
 
     // const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
 
@@ -164,7 +165,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
     };
 
     const savedQueryOptions = allQueries.data.data
-        ? allQueries?.data?.data.map(el => {
+        ? allQueries?.data?.data.userQueries.map(el => {
               return { name: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''), value: el };
           })
         : [];
@@ -212,7 +213,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
             codeMirrorRef.current.codeMirror.setValue(sparqlQueryVal);
             validator(sparqlQueryVal);
         }
-    }, [currentTab]);
+    }, [currentTab, localhostLoaded, triggerCodeMirrorStateChange]);
 
     useEffect(() => {
         if (stateIsLoaded(queryState)) {
@@ -235,6 +236,15 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
     useEffect(() => {
         if (stateIsLoaded(queryStateHTML)) {
             setWindowResponseTable(queryStateHTML?.data?.data);
+            // setColumns(
+            //     queryStateHTML?.data?.data.head.vars.map(el => {
+            //         return {
+            //             name: el,
+            //             selector: (row, index) => row[el].value,
+            //             sortable: true,
+            //         };
+            //     })
+            // );
         }
     }, [queryStateHTML]);
 
@@ -254,6 +264,12 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                 return data;
         }
     }
+
+    // function abortFetching() {
+    //     console.log('Now aborting');
+    //     // Abort.
+    //     controller.abort();
+    // }
 
     function makeMarker(msg) {
         const marker = document.createElement('div');
@@ -280,8 +296,10 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
             codeMirrorRef.current.codeMirror.clearGutter('error');
         }
         try {
-            parser.parse(data);
+            let parsed = parser.parse(data);
+            // console.log(parsed);
         } catch (e) {
+            console.log(e);
             let splitted = e.message.split(/\r?\n/);
             if (splitted.length === 4) {
                 let splitFirstLine = splitted[0].split(' ');
@@ -366,7 +384,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                         ></CustomInput>
                     </View>
 
-                    <TextareaAutosize
+                    {/* <TextareaAutosize
                         hidden
                         name={'queryStr'}
                         form={'someform'}
@@ -378,7 +396,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                         aria-label="minimum height"
                         rowsMin={10}
                         placeholder="Minimum 3 rows"
-                    />
+                    /> */}
 
                     <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                         <CustomizedSelects
@@ -405,8 +423,18 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                                 dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal));
                                 dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal));
                                 setResponseWindowFormat(formatToCodeMirrorMode[format]);
-                                if (checkboxVal) {
-                                    dispatch(saveQueryAction(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryNameVal));
+                                if (saveCheckBoxVal) {
+                                    dispatch(
+                                        saveQueryAction(
+                                            url,
+                                            graphNameIri,
+                                            sparqlQueryVal,
+                                            format,
+                                            timeOutVal,
+                                            queryNameVal,
+                                            privateModifierCheckBoxVal
+                                        )
+                                    );
                                     // dispatch(getAllQueriesAction());
                                 }
                             }}
@@ -446,6 +474,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                     value={sparqlQueryVal}
                     lint={true}
                     onChange={data => {
+                        console.log('execs');
                         setSparqlQueryVal(data);
                         validator(data);
                     }}
@@ -549,11 +578,11 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                 )}
                 {previewType === 'table' && (
                     <>
-                        <ResizableBox
+                        {/* <ResizableBox
                             className="custom-box box"
                             height={responseWindowHeight}
                             // width={100}
-                            style={{ border: '1px solid #DDDDDD', marginBottom: 100 }}
+                            style={{ borderBottom: '1px solid #DDDDDD', marginBottom: 100 }}
                             handleSize={[8, 8]}
                             resizeHandles={['s']}
                             onResize={(ev, data) => {
@@ -572,11 +601,37 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                                     }}
                                 ></div>
                             }
-                        >
-                            <View style={{ height: '100%', width: '100%', overflow: 'auto' }}>
+                        > */}
+                        {/* <View style={{ height: '100%', width: '100%', overflow: 'auto' }}>
                                 {windowResponseTable && htmlToReactParser.parse(windowResponseTable)}
+                                {!windowResponseTable && (
+                                    <View>
+                                        <Text> Table view not available right now. Please run query to get table view. </Text>
+                                    </View>
+                                )}
+                            </View> */}
+                        {windowResponseTable?.head && (
+                            <View style={{ height: '100%', width: '100%', overflow: 'auto' }}>
+                                <DataTable
+                                    noHeader={true}
+                                    columns={windowResponseTable?.head?.vars.map(el => {
+                                        return {
+                                            name: el,
+                                            selector: (row, index) => row[el].value,
+                                            sortable: true,
+                                        };
+                                    })}
+                                    data={windowResponseTable?.results?.bindings}
+                                    pagination={true}
+                                ></DataTable>
                             </View>
-                        </ResizableBox>
+                        )}
+                        {!windowResponseTable?.head && (
+                            <View>
+                                <Text> Table view not available right now. Please run query to get table view. </Text>
+                            </View>
+                        )}
+                        {/* </ResizableBox> */}
                     </>
                 )}
             </View>

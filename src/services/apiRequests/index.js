@@ -20,7 +20,7 @@ export const PlainApiRequest = async API => {
     if (responseData.status === 200) {
         return handleSuccess(responseData);
     } else {
-        console.log('error');
+        // console.log('error');
 
         return handleError(responseData.status, API, this);
     }
@@ -28,7 +28,7 @@ export const PlainApiRequest = async API => {
 
 export const PostRequestWithData = async (API, data, headers) => {
     let auth = tokenHelper.auth();
-    console.log(auth);
+    // console.log(auth);
 
     const responseData = await requestAgent.post(
         API,
@@ -46,7 +46,7 @@ export const PostRequestWithData = async (API, data, headers) => {
     if (responseData.status === 200) {
         return handleSuccess(responseData);
     } else {
-        console.log(responseData);
+        // console.log(responseData);
 
         return handleError(responseData.status, API, this);
     }
