@@ -4,6 +4,85 @@ import { useSelector } from 'react-redux';
 
 import { tokenHelper } from 'services/tokenHelpers';
 
+const formatOptions = {
+    select: [
+        {
+            name: 'Json',
+            value: 'application/json',
+        },
+        {
+            name: 'HTML',
+            value: 'text/html',
+        },
+        {
+            name: 'Turtle',
+            value: 'text/turtle',
+        },
+        {
+            name: 'XML',
+            value: 'application/xml',
+        },
+        {
+            name: 'RDF/XML',
+            value: 'application/rdf+xml',
+        },
+        {
+            name: 'N-triples',
+            value: 'application/n-triples',
+        },
+        {
+            name: 'CSV',
+            value: 'text/csv',
+        },
+        {
+            name: 'TSV',
+            value: 'text/tab-separated-values',
+        },
+    ],
+    construct: [
+        {
+            name: 'Turtle',
+            value: 'text/turtle',
+        },
+        {
+            name: 'XML',
+            value: 'application/xml',
+        },
+        {
+            name: 'RDF/XML',
+            value: 'application/rdf+xml',
+        },
+        {
+            name: 'N-triples',
+            value: 'application/n-triples',
+        },
+    ],
+    describe: [
+        {
+            name: 'Turtle',
+            value: 'text/turtle',
+        },
+        {
+            name: 'XML',
+            value: 'application/xml',
+        },
+        {
+            name: 'RDF/XML',
+            value: 'application/rdf+xml',
+        },
+        {
+            name: 'N-triples',
+            value: 'application/n-triples',
+        },
+    ],
+    ask: [
+        {
+            name: 'Json',
+            value: 'application/json',
+        },
+    ],
+};
+
 export const useTabConfig = history => {
     const defaultNewTab = {
         sparqlQueryVal: `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -25,6 +104,7 @@ SELECT * WHERE {
         currentMarker: null,
         windowResponse: '',
         tableResponse: '',
+        queryType: 'select',
     };
     const [tabs, setTabs] = useState([defaultNewTab]);
     const [localhostLoaded, setLocalhostLoaded] = useState(false);
@@ -262,6 +342,17 @@ SELECT * WHERE {
         setTabs([...tabs]);
     }
 
+    function setQueryType(data) {
+        if (tabs[currentTab].queryType != data) {
+            tabs[currentTab] = {
+                ...tabs[currentTab],
+                queryType: data.toLowerCase(),
+                format: formatOptions[data.toLowerCase()][0].value,
+            };
+            setTabs([...tabs]);
+        }
+    }
+
     return {
         sparqlQueryVal: tabs[currentTab]?.sparqlQueryVal,
         setSparqlQueryVal: setSparqlQueryVal,
@@ -293,6 +384,8 @@ SELECT * WHERE {
         setWindowResponse: setWindowResponse,
         windowResponseTable: tabs[currentTab]?.windowResponseTable,
         setWindowResponseTable: setWindowResponseTable,
+        queryType: tabs[currentTab]?.queryType,
+        setQueryType,
         setCurrentTab: setCurrentTab,
         currentTab: currentTab,
         createNewTab,
@@ -303,5 +396,6 @@ SELECT * WHERE {
         setPrivateModifierCheckBoxVal,
         localhostLoaded,
         triggerCodeMirrorStateChange,
+        formatOptions,
     };
 };

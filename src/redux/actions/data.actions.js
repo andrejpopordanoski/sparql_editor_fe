@@ -20,7 +20,7 @@ import {
 } from '../constants/main.constants';
 import { buildActionType } from './buildActionType';
 
-export const processQuery = (url, graphNameIri, sparqlQueryVal, format, timeOutVal) => async dispatch => {
+export const processQuery = (url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryType) => async dispatch => {
     let data = new FormData();
     data.set('url', url);
     data.set('defaultGraphSetIri', graphNameIri);
@@ -28,6 +28,7 @@ export const processQuery = (url, graphNameIri, sparqlQueryVal, format, timeOutV
 
     data.set('format', format);
     data.set('timeout', timeOutVal);
+    data.set('queryType', queryType);
 
     dispatch({
         type: buildActionType(EXECUTE_QUERY, ActionStatus.START),
@@ -47,7 +48,7 @@ export const processQuery = (url, graphNameIri, sparqlQueryVal, format, timeOutV
     }
 };
 
-export const processQueryHTML = (url, graphNameIri, sparqlQueryVal, timeOutVal) => async dispatch => {
+export const processQueryHTML = (url, graphNameIri, sparqlQueryVal, timeOutVal, queryType) => async dispatch => {
     let data = new FormData();
     data.set('url', url);
     data.set('defaultGraphSetIri', graphNameIri);
@@ -56,6 +57,7 @@ export const processQueryHTML = (url, graphNameIri, sparqlQueryVal, timeOutVal) 
 
     data.set('timeout', timeOutVal);
     data.set('forHtml', true);
+    data.set('queryType', queryType);
 
     dispatch({
         type: buildActionType(EXECUTE_QUERY_HTML, ActionStatus.START),
@@ -74,7 +76,16 @@ export const processQueryHTML = (url, graphNameIri, sparqlQueryVal, timeOutVal) 
     }
 };
 
-export const saveQueryAction = (url, defaultGraphSetIri, queryStr, format, timeout, queryNameVal, privateModifierCheckBoxVal) => async dispatch => {
+export const saveQueryAction = (
+    url,
+    defaultGraphSetIri,
+    queryStr,
+    format,
+    timeout,
+    queryNameVal,
+    privateModifierCheckBoxVal,
+    queryType
+) => async dispatch => {
     let data = new FormData();
     data.set('url', url);
     data.set('defaultGraphSetIri', defaultGraphSetIri);
@@ -84,6 +95,7 @@ export const saveQueryAction = (url, defaultGraphSetIri, queryStr, format, timeo
     data.set('timeout', timeout);
     data.set('queryName', queryNameVal);
     data.set('privateAccess', privateModifierCheckBoxVal);
+    data.set('queryType', queryType);
 
     dispatch({
         type: buildActionType(SAVE_QUERY, ActionStatus.START),

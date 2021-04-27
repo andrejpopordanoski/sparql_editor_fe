@@ -100,42 +100,10 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         setPrivateModifierCheckBoxVal,
         localhostLoaded,
         triggerCodeMirrorStateChange,
+        queryType,
+        setQueryType,
+        formatOptions,
     } = useTabConfig;
-
-    const formatOptions = [
-        {
-            name: 'Json',
-            value: 'application/json',
-        },
-        {
-            name: 'HTML',
-            value: 'text/html',
-        },
-        {
-            name: 'Turtle',
-            value: 'text/turtle',
-        },
-        {
-            name: 'XML',
-            value: 'application/xml',
-        },
-        {
-            name: 'RDF/XML',
-            value: 'application/rdf+xml',
-        },
-        {
-            name: 'N-triples',
-            value: 'application/n-triples',
-        },
-        {
-            name: 'CSV',
-            value: 'text/csv',
-        },
-        {
-            name: 'TSV',
-            value: 'text/tab-separated-values',
-        },
-    ];
 
     const dispatch = useDispatch();
 
@@ -148,8 +116,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
     const codeMirrorRef = useRef(null);
     const codeMirrorRef2 = useRef(null);
     let loggedIn = authState.data?.data?.access_token;
-
-    const [columns, setColumns] = useState([]);
 
     // const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
 
@@ -169,43 +135,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
               return { name: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''), value: el };
           })
         : [];
-
-    // useEffect(() => {
-    //     console.log(tokenHelper.auth());
-    //     setLoggedIn(tokenHelper.auth());
-    // }, [authState]);
-
-    // useEffect(() => {
-    //     if (currentlyChosenOlderQuery) {
-    //         // setSparqlQueryVal(currentlyChosenOlderQuery.queryString);
-
-    //         // setUrl(currentlyChosenOlderQuery.url);
-    //         // if (codeMirrorRef.current) {
-    //         //     codeMirrorRef.current.codeMirror.setValue(currentlyChosenOlderQuery.queryString);
-    //         //     // codeMirrorRef.current.codeMirror.setValue(sparqlQueryVal);
-    //         // }
-
-    //         // setGraphNameIri(currentlyChosenOlderQuery.defaultDatasetName);
-
-    //         // setTimeoutVal(currentlyChosenOlderQuery.timeout);
-
-    //         // setFormat(currentlyChosenOlderQuery.format);
-    //         let newTab = {
-    //             sparqlQueryVal: currentlyChosenOlderQuery.queryString,
-    //             url: currentlyChosenOlderQuery.url,
-    //             graphNameIri: currentlyChosenOlderQuery.defaultDatasetName,
-    //             timeout: currentlyChosenOlderQuery.timeout,
-    //             format: currentlyChosenOlderQuery.format,
-    //         };
-    //         createNewTab(newTab);
-    //     }
-    // }, [currentlyChosenOlderQuery]);
-
-    // useEffect(() => {
-    //     if (codeMirrorRef2.current) {
-    //         codeMirrorRef2.current.codeMirror.setValue(queryState?.data?.data);
-    //     }
-    // }, [queryState]);
 
     useEffect(() => {
         if (codeMirrorRef.current) {
@@ -236,15 +165,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
     useEffect(() => {
         if (stateIsLoaded(queryStateHTML)) {
             setWindowResponseTable(queryStateHTML?.data?.data);
-            // setColumns(
-            //     queryStateHTML?.data?.data.head.vars.map(el => {
-            //         return {
-            //             name: el,
-            //             selector: (row, index) => row[el].value,
-            //             sortable: true,
-            //         };
-            //     })
-            // );
         }
     }, [queryStateHTML]);
 
@@ -258,18 +178,11 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         switch (format) {
             case 'application/json':
                 return JSON.stringify(data, null, ' ');
-            // case 'text/html':
-            //     return JSON.stringify(data, 4, ' ');
+
             default:
                 return data;
         }
     }
-
-    // function abortFetching() {
-    //     console.log('Now aborting');
-    //     // Abort.
-    //     controller.abort();
-    // }
 
     function makeMarker(msg) {
         const marker = document.createElement('div');
@@ -297,7 +210,8 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         }
         try {
             let parsed = parser.parse(data);
-            // console.log(parsed);
+            console.log(parsed);
+            setQueryType(parsed.queryType.toLowerCase());
         } catch (e) {
             console.log(e);
             let splitted = e.message.split(/\r?\n/);
@@ -361,7 +275,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
 
                         <CustomizedSelects
                             label={'Format'}
-                            options={formatOptions}
+                            options={formatOptions[queryType]}
                             currentOption={format}
                             setCurrentOption={setFormat}
                         ></CustomizedSelects>
@@ -420,8 +334,11 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                             style={{ marginLeft: 20 }}
                             onClick={() => {
                                 // eve.preventDefault();
-                                dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal));
-                                dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal));
+                                dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryType));
+                                if (queryType == 'select') {
+                                    dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal, queryType));
+                                }
+
                                 setResponseWindowFormat(formatToCodeMirrorMode[format]);
                                 if (saveCheckBoxVal) {
                                     dispatch(
@@ -432,7 +349,8 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                                             format,
                                             timeOutVal,
                                             queryNameVal,
-                                            privateModifierCheckBoxVal
+                                            privateModifierCheckBoxVal,
+                                            queryType
                                         )
                                     );
                                     // dispatch(getAllQueriesAction());
