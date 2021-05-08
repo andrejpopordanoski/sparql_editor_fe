@@ -17,6 +17,9 @@ import { stateIsLoaded } from 'services/stateHelpers';
 
 export default function SideMenu({ history, useTabConfig, usePaginationPublic, usePaginationPrivate }) {
     // const [saveResponseToggle, setSaveResponseToggle] = useState(false);
+    const authState = useSelector(state => state.auth);
+
+    let loggedIn = authState.data?.data?.access_token;
     const dispatch = useDispatch(0);
 
     const {
@@ -33,6 +36,13 @@ export default function SideMenu({ history, useTabConfig, usePaginationPublic, u
 
     const [queriesPreview, setQueriesPreview] = useState('private');
     const savingQueryResponse = useSelector(state => state.savingQueryResponse);
+    const deleteQueryState = useSelector(state => state.deleteQuery);
+
+    // useEffect(() => {
+    //     if (!loggedIn) {
+    //         setQueriesPreview('public');
+    //     }
+    // }, [loggedIn]);
 
     useEffect(() => {
         console.log('page changed');
@@ -41,8 +51,10 @@ export default function SideMenu({ history, useTabConfig, usePaginationPublic, u
     }, [usePaginationPublic.currentPage]);
 
     useEffect(() => {
-        dispatch(getAllQueriesAction(usePaginationPrivate.currentPage));
-    }, [usePaginationPrivate.currentPage]);
+        if (loggedIn) {
+            dispatch(getAllQueriesAction(usePaginationPrivate.currentPage));
+        }
+    }, [usePaginationPrivate.currentPage, loggedIn]);
 
     useEffect(() => {
         console.log(savingQueryResponse);
@@ -51,6 +63,12 @@ export default function SideMenu({ history, useTabConfig, usePaginationPublic, u
             dispatch(getAllQueriesAction(usePaginationPrivate.currentPage));
         }
     }, [savingQueryResponse]);
+
+    useEffect(() => {
+        if (stateIsLoaded(deleteQueryState)) {
+            dispatch(getAllQueriesAction(usePaginationPrivate.currentPage));
+        }
+    }, [deleteQueryState]);
 
     // useEffect(() => {
     //     console.log(queriesPreview);
@@ -92,89 +110,139 @@ export default function SideMenu({ history, useTabConfig, usePaginationPublic, u
                 </div>
             }
         >
-            <View style={{ width: '100%', boxShadow: `3px 0px 5px 0px ${colors.borderGrayColor()}` }}>
-                <View>
-                    <ToggleComponent
-                        checkBoxVal={saveCheckBoxVal}
-                        setCheckBoxVal={setSaveCheckboxVal}
-                        description={() => 'Save queries on run'}
-                    ></ToggleComponent>
-                    <ToggleComponent
-                        disabled={!saveCheckBoxVal}
-                        checkBoxVal={privateModifierCheckBoxVal}
-                        setCheckBoxVal={setPrivateModifierCheckBoxVal}
-                        description={value => `Save access set to ${value === true ? 'PRIVATE' : 'PUBLIC'}`}
-                    ></ToggleComponent>
-                </View>
-                <View>
-                    <Text style={{ ...headers.H4(null, 'Regular'), marginLeft: 10, marginTop: 15, marginBottom: 5 }}> Saved queries </Text>
-                    <View
-                        style={{
-                            marginTop: 20,
-                            borderBottom: `1px solid ${colors.borderGrayColor()}`,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginBottom: 5,
-                        }}
-                    >
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Button
-                                style={{ borderBottom: queriesPreview === 'private' ? '2px solid orange' : null, borderRadius: 0 }}
-                                // style={{ borderBottom: previewType === 'response' ? '2px solid orange' : null, borderRadius: 0 }}
-                                startIcon={<LockIcon color={queriesPreview === 'private' ? 'primary' : 'secondary'}></LockIcon>}
-                                onClick={() => {
-                                    setQueriesPreview('private');
-                                }}
-                            >
-                                PRIVATE
-                            </Button>
-                            <Button
-                                style={{ borderBottom: queriesPreview === 'public' ? '2px solid orange' : null, borderRadius: 0 }}
-                                startIcon={<PublicIcon color={queriesPreview === 'public' ? 'primary' : 'secondary'}></PublicIcon>}
-                                onClick={() => {
-                                    setQueriesPreview('public');
-                                }}
-                            >
-                                PUBLIC
-                            </Button>
-                        </View>
+            {loggedIn && (
+                <View style={{ width: '100%', boxShadow: `3px 0px 5px 0px ${colors.borderGrayColor()}` }}>
+                    <View>
+                        <ToggleComponent
+                            checkBoxVal={saveCheckBoxVal}
+                            setCheckBoxVal={setSaveCheckboxVal}
+                            description={() => 'Save queries on run'}
+                        ></ToggleComponent>
+                        <ToggleComponent
+                            disabled={!saveCheckBoxVal}
+                            checkBoxVal={privateModifierCheckBoxVal}
+                            setCheckBoxVal={setPrivateModifierCheckBoxVal}
+                            description={value => `Save access set to ${value === true ? 'PRIVATE' : 'PUBLIC'}`}
+                        ></ToggleComponent>
                     </View>
-                    {queries &&
-                        queries?.data?.data?.userQueries.map(el => {
-                            return (
-                                <SavedQueryOption
+                    <View>
+                        <Text style={{ ...headers.H4(null, 'Regular'), marginLeft: 10, marginTop: 15, marginBottom: 5 }}> Saved queries </Text>
+                        <View
+                            style={{
+                                marginTop: 20,
+                                borderBottom: `1px solid ${colors.borderGrayColor()}`,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginBottom: 5,
+                            }}
+                        >
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Button
+                                    style={{ borderBottom: queriesPreview === 'private' ? '2px solid orange' : null, borderRadius: 0 }}
+                                    // style={{ borderBottom: previewType === 'response' ? '2px solid orange' : null, borderRadius: 0 }}
+                                    startIcon={<LockIcon color={queriesPreview === 'private' ? 'primary' : 'secondary'}></LockIcon>}
                                     onClick={() => {
-                                        // setCurrentlyChosenOlderQuery(el);
-                                        let newTab = {
-                                            sparqlQueryVal: el.queryString,
-                                            url: el.url,
-                                            graphNameIri: el.defaultDatasetName,
-                                            timeOutVal: el.timeout,
-                                            format: el.format,
-                                            queryNameVal: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''),
-                                        };
-                                        dispatch(getSavedQueryResultAction(el.format, el.id));
-                                        createNewTab(newTab, queriesPreview === 'public', el.id);
-                                        if (queriesPreview === 'public') {
-                                            history.replace('/sparql?query_id=' + el.id);
-                                        }
+                                        setQueriesPreview('private');
                                     }}
-                                    name={el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : '')}
-                                    url={el.url}
-                                    author={el.userEmail}
-                                    showAuthor={queriesPreview === 'public'}
-                                ></SavedQueryOption>
-                            );
-                        })}
-                    <Pagination
-                        page={usePagination.currentPage + 1}
-                        count={queries?.data?.data?.totalPages}
-                        onChange={(_, page) => {
-                            usePagination.setCurrentPage(page - 1);
-                        }}
-                    />
+                                >
+                                    MY QUERIES
+                                </Button>
+                                <Button
+                                    style={{ borderBottom: queriesPreview === 'public' ? '2px solid orange' : null, borderRadius: 0 }}
+                                    startIcon={<PublicIcon color={queriesPreview === 'public' ? 'primary' : 'secondary'}></PublicIcon>}
+                                    onClick={() => {
+                                        setQueriesPreview('public');
+                                    }}
+                                >
+                                    PUBLIC
+                                </Button>
+                            </View>
+                        </View>
+                        {queries &&
+                            queries?.data?.data?.userQueries.map(el => {
+                                return (
+                                    <SavedQueryOption
+                                        onClick={() => {
+                                            // setCurrentlyChosenOlderQuery(el);
+                                            let newTab = {
+                                                sparqlQueryVal: el.queryString,
+                                                url: el.url,
+                                                graphNameIri: el.defaultDatasetName,
+                                                timeOutVal: el.timeout,
+                                                format: el.format,
+                                                queryNameVal: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''),
+                                            };
+                                            dispatch(getSavedQueryResultAction(el.format, el.id));
+                                            createNewTab(newTab, queriesPreview === 'public', el.id);
+                                            if (queriesPreview === 'public') {
+                                                history.replace('/sparql?query_id=' + el.id);
+                                            }
+                                        }}
+                                        onDelete={() => {
+                                            dispatch(getAllQueriesAction(usePaginationPrivate.currentPage));
+                                        }}
+                                        id={el.id}
+                                        name={el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : '')}
+                                        url={el.url}
+                                        author={el.userEmail}
+                                        showAuthor={queriesPreview === 'public'}
+                                    ></SavedQueryOption>
+                                );
+                            })}
+                        <Pagination
+                            page={usePagination.currentPage + 1}
+                            count={queries?.data?.data?.totalPages}
+                            onChange={(_, page) => {
+                                usePagination.setCurrentPage(page - 1);
+                            }}
+                        />
+                    </View>
                 </View>
-            </View>
+            )}
+            {!loggedIn && (
+                <View style={{ width: '100%', boxShadow: `3px 0px 5px 0px ${colors.borderGrayColor()}` }}>
+                    <View>
+                        <Text style={{ ...headers.H4(null, 'Regular'), marginLeft: 10, marginTop: 15, marginBottom: 5 }}> Public queries </Text>
+                        {allPublicQueries &&
+                            allPublicQueries?.data?.data?.userQueries.map(el => {
+                                return (
+                                    <SavedQueryOption
+                                        onClick={() => {
+                                            // setCurrentlyChosenOlderQuery(el);
+                                            let newTab = {
+                                                sparqlQueryVal: el.queryString,
+                                                url: el.url,
+                                                graphNameIri: el.defaultDatasetName,
+                                                timeOutVal: el.timeout,
+                                                format: el.format,
+                                                queryNameVal: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''),
+                                            };
+                                            dispatch(getSavedQueryResultAction(el.format, el.id));
+                                            createNewTab(newTab, true, el.id);
+
+                                            history.replace('/sparql?query_id=' + el.id);
+                                        }}
+                                        onDelete={() => {
+                                            dispatch(getAllQueriesAction(usePaginationPrivate.currentPage));
+                                        }}
+                                        id={el.id}
+                                        name={el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : '')}
+                                        url={el.url}
+                                        author={el.userEmail}
+                                        showAuthor={true}
+                                    ></SavedQueryOption>
+                                );
+                            })}
+                        <Pagination
+                            page={usePagination.currentPage + 1}
+                            count={queries?.data?.data?.totalPages}
+                            onChange={(_, page) => {
+                                usePagination.setCurrentPage(page - 1);
+                            }}
+                        />
+                    </View>
+                </View>
+            )}
         </ResizableBox>
     );
 }

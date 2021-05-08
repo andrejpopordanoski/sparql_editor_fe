@@ -93,6 +93,8 @@ const refreshProviderToken = async dispatch => {
 
 export const logoutAction = () => async dispatch => {
     dispatch({ type: buildActionType(LOGOUT, ActionStatus.DONE) });
+    localStorage.removeItem('persist:tabs');
+    localStorage.removeItem('persist:tabsLabels');
 };
 
 export { passwordLoginAction, refreshProviderToken };

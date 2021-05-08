@@ -6,6 +6,7 @@ import {
     QUERY_API,
     SAVE_QUERY_API,
     GET_SINGLE_PUBLIC_QUERY_API,
+    DELETE_QUERY_API,
 } from 'services/api';
 import { PlainApiRequest, PostRequestWithData } from 'services/apiRequests';
 import {
@@ -17,6 +18,7 @@ import {
     GET_SAVED_QUERY_RESULT,
     GET_ALL_QUERIES_PUBLIC,
     GET_SINGLE_PUBLIC_QUERY,
+    DELETE_QUERY,
 } from '../constants/main.constants';
 import { buildActionType } from './buildActionType';
 
@@ -157,6 +159,23 @@ export const getSinglePublicQueryAction = queryId => async dispatch => {
     if (response.success) {
         dispatch({
             type: buildActionType(GET_SINGLE_PUBLIC_QUERY, ActionStatus.DONE),
+            payload: {
+                ...response,
+            },
+        });
+    }
+};
+
+export const deleteQueryAction = queryId => async dispatch => {
+    dispatch({
+        type: buildActionType(DELETE_QUERY, ActionStatus.START),
+    });
+
+    const response = await PostRequestWithData(DELETE_QUERY_API(queryId));
+
+    if (response.success) {
+        dispatch({
+            type: buildActionType(DELETE_QUERY, ActionStatus.DONE),
             payload: {
                 ...response,
             },

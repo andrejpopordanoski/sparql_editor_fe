@@ -1,4 +1,4 @@
-import { Button, TextareaAutosize } from '@material-ui/core';
+import { Button, LinearProgress, TextareaAutosize } from '@material-ui/core';
 import React, { useEffect, useRef, useState } from 'react';
 import { basicStyles, colors, headers } from 'styles';
 import { InputLabel } from '@material-ui/core';
@@ -12,7 +12,7 @@ import 'react-resizable/css/styles.css';
 import View from 'module/components/View';
 import Text from 'module/components/Text';
 import { tokenHelper } from 'services/tokenHelpers';
-import { stateIsLoaded } from 'services/stateHelpers';
+import { stateIsLoaded, stateIsLoading } from 'services/stateHelpers';
 import 'codemirror/addon/hint/show-hint';
 import 'codemirror/addon/hint/sql-hint';
 import 'codemirror/addon/hint/show-hint.css'; // without this css hints won't show
@@ -27,6 +27,7 @@ import 'codemirror/addon/fold/indent-fold';
 import 'codemirror/addon/fold/markdown-fold';
 import 'codemirror/addon/fold/comment-fold';
 import 'codemirror/addon/fold/foldgutter.css';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import CustomInput from 'module/components/CustomInput';
 
@@ -38,6 +39,9 @@ import GetAppIcon from '@material-ui/icons/GetApp';
 import TableChartIcon from '@material-ui/icons/TableChart';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import DataTable from 'react-data-table-component';
+import useInterval from '@use-it/interval';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
+
 // import { useTabConfig } from './useTabConfig';
 // import { useTabConfig } from './useTabConfig';
 require('codemirror/mode/sparql/sparql');
@@ -103,6 +107,8 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         queryType,
         setQueryType,
         formatOptions,
+        queryId,
+        isPublic,
     } = useTabConfig;
 
     const dispatch = useDispatch();
@@ -116,8 +122,33 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
     const codeMirrorRef = useRef(null);
     const codeMirrorRef2 = useRef(null);
     let loggedIn = authState.data?.data?.access_token;
-
+    const [completed, setCompleted] = useState(0);
     // const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
+
+    useInterval(
+        () => {
+            setCompleted(oldCompleted => {
+                let diff;
+                if (oldCompleted < 75) {
+                    diff = Math.random() * 20;
+                } else {
+                    diff = Math.random() * 2;
+                }
+
+                return Math.min(oldCompleted + diff, 100);
+            });
+        },
+        stateIsLoading(queryState) ? 400 : null
+    );
+
+    useEffect(() => {
+        if (stateIsLoaded(queryState)) {
+            setCompleted(100);
+            setTimeout(() => {
+                setCompleted(0);
+            }, 300);
+        }
+    }, [queryState]);
 
     const formatToCodeMirrorMode = {
         'application/json': 'javascript',
@@ -296,6 +327,28 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                             setValue={setGraphNameIri}
                             maxSize={400}
                         ></CustomInput>
+                        {isPublic && (
+                            <CustomInput
+                                label={'Public query link'}
+                                style={{ width: '30%', paddingRight: 20 }}
+                                value={window.location}
+                                // setValue={'/sparql?queryId=' + queryId}
+                                maxSize={400}
+                                disabled={true}
+                                endIcon={
+                                    <CopyToClipboard text={`${window.location}`}>
+                                        <FileCopyIcon
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => {
+                                                console.log('click');
+                                                alert('Link was copied to clipboard');
+                                            }}
+                                            color="secondary"
+                                        ></FileCopyIcon>
+                                    </CopyToClipboard>
+                                }
+                            ></CustomInput>
+                        )}
                     </View>
 
                     {/* <TextareaAutosize
@@ -334,26 +387,27 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                             style={{ marginLeft: 20 }}
                             onClick={() => {
                                 // eve.preventDefault();
-                                dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryType));
-                                if (queryType == 'select') {
-                                    dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal, queryType));
-                                }
-
-                                setResponseWindowFormat(formatToCodeMirrorMode[format]);
-                                if (saveCheckBoxVal) {
-                                    dispatch(
-                                        saveQueryAction(
-                                            url,
-                                            graphNameIri,
-                                            sparqlQueryVal,
-                                            format,
-                                            timeOutVal,
-                                            queryNameVal,
-                                            privateModifierCheckBoxVal,
-                                            queryType
-                                        )
-                                    );
-                                    // dispatch(getAllQueriesAction());
+                                if (!stateIsLoading(queryState)) {
+                                    dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryType));
+                                    if (queryType == 'select') {
+                                        dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal, queryType));
+                                    }
+                                    setResponseWindowFormat(formatToCodeMirrorMode[format]);
+                                    if (saveCheckBoxVal) {
+                                        dispatch(
+                                            saveQueryAction(
+                                                url,
+                                                graphNameIri,
+                                                sparqlQueryVal,
+                                                format,
+                                                timeOutVal,
+                                                queryNameVal,
+                                                privateModifierCheckBoxVal,
+                                                queryType
+                                            )
+                                        );
+                                        // dispatch(getAllQueriesAction());
+                                    }
                                 }
                             }}
                         >
@@ -449,6 +503,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                 </View>
             </View>
             <View style={{ paddingTop: 20, marginRight: 20 }}>
+                {completed > 0 && <LinearProgress value={completed} variant="determinate" color="primary" />}
                 {previewType === 'response' && (
                     <ResizableBox
                         className="custom-box box"
@@ -546,7 +601,11 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                         )}
                         {!windowResponseTable?.head && (
                             <View>
-                                <Text> Table view not available right now. Please run query to get table view. </Text>
+                                <Text>
+                                    {' '}
+                                    Table view not available right now. Table view is only available on select queries. Please run query to get table
+                                    view.{' '}
+                                </Text>
                             </View>
                         )}
                         {/* </ResizableBox> */}

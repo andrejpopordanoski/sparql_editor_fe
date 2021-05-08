@@ -8,3 +8,4 @@ export const GET_ALL_QUERIES_BY_USER_API = page => '/api/users/get_all_queries?s
 export const GET_SAVED_QUERY_RESULT_API = '/api/users/qet_query_result';
 export const GET_SINGLE_PUBLIC_QUERY_API = queryId => '/api/users/get_single_public_query?queryId=' + queryId;
 export const GET_ALL_PUBLIC_QUERIES_API = page => '/api/users/get_all_public_queries?size=10&page=' + page;
+export const DELETE_QUERY_API = queryId => '/api/users/delete_query?queryId=' + queryId;

@@ -7,7 +7,7 @@ import FormControl from '@material-ui/core/FormControl';
 
 import { headers, colors } from 'styles';
 import { InputLabel } from '@material-ui/core';
-
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 function NumberFormatCustom(props) {
     const { inputRef, onChange, ...other } = props;
     return (
@@ -34,6 +34,9 @@ const BootstrapInput = withStyles(theme => ({
         'label + &': {
             marginTop: theme.spacing(2),
             flexBasis: '100%',
+            // position: 'absolute',
+            fontSize: 20,
+            zIndex: 1,
         },
     },
     input: {
@@ -62,20 +65,22 @@ const BootstrapInput = withStyles(theme => ({
     },
 }))(InputBase);
 
-export default function CustomInput({ style, value, setValue, maxSize, type, label }) {
+export default function CustomInput({ style, value, setValue, maxSize, type, label, disabled, endIcon }) {
     // const [localValue, setLocalValue] = useState(value);
     const STANDARD_INPUT_WIDTH = 200;
 
     return (
         <FormControl style={{ ...style, maxWidth: maxSize ? maxSize : STANDARD_INPUT_WIDTH }}>
-            {label && <InputLabel id="demo-customized-select-label">{label}</InputLabel>}
+            {label && <InputLabel shrink={true}>{label}</InputLabel>}
             <BootstrapInput
+                disabled={disabled}
                 tabIndex="0"
                 style={{
                     flexBasis: '100%',
 
                     minWidth: 0,
                 }}
+                endAdornment={endIcon ? endIcon : false}
                 value={value}
                 onChange={event => {
                     if (type == 'number') {

@@ -132,14 +132,15 @@ export default function EditorWrapper({ history }) {
                 </View>
             </View>
             <View style={{ flexDirection: 'row' }}>
-                {loggedIn && (
-                    <SideMenu
-                        history={history}
-                        useTabConfig={useTabs}
-                        usePaginationPublic={usePaginationPublic}
-                        usePaginationPrivate={usePaginationPrivate}
-                    ></SideMenu>
-                )}
+                {/* {loggedIn && ( */}
+                <SideMenu
+                    loggedIn={loggedIn}
+                    history={history}
+                    useTabConfig={useTabs}
+                    usePaginationPublic={usePaginationPublic}
+                    usePaginationPrivate={usePaginationPrivate}
+                ></SideMenu>
+                {/* )} */}
                 <View style={{ flex: 1 }}>
                     <View>
                         <div>

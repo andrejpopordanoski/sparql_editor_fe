@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 import {
+    DELETE_QUERY,
     EXECUTE_QUERY,
     EXECUTE_QUERY_HTML,
     GET_ALL_QUERIES,
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
     savedQueryResult: basicReducer(GET_SAVED_QUERY_RESULT),
     savingQueryResponse: basicReducer(SAVE_QUERY),
     singlePublicQuery: basicReducer(GET_SINGLE_PUBLIC_QUERY),
+    deleteQuery: basicReducer(DELETE_QUERY),
 });
 
 export default (state, action) => rootReducer(action.type === buildActionType(LOGOUT, ActionStatus.DONE) ? undefined : state, action);

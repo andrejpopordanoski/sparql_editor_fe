@@ -103,7 +103,7 @@ SELECT * WHERE {
         responseWindowHeight: 250,
         currentMarker: null,
         windowResponse: '',
-        tableResponse: '',
+        windowResponseTable: null,
         queryType: 'select',
     };
     const [tabs, setTabs] = useState([defaultNewTab]);
@@ -152,8 +152,8 @@ SELECT * WHERE {
 
         let tabsToSave = [];
         tabs.forEach(tab => {
-            let { currentMarker, windowResponse, tableResponse, ...rest } = tab;
-            tabsToSave.push({ ...rest, windowResponse: '', tableResponse: '', currentMarker: null });
+            let { currentMarker, windowResponse, windowResponseTable, ...rest } = tab;
+            tabsToSave.push({ ...rest, windowResponse: '', windowResponseTable: null, currentMarker: null });
         });
 
         localStorage.setItem('persist:tabs', JSON.stringify(tabsToSave));
@@ -161,24 +161,6 @@ SELECT * WHERE {
     }, [tabs]);
 
     useEffect(() => {}, []);
-
-    // const [tabsLabels, setTabsLabels] = useState(['Untitled']);
-
-    // const [sparqlQueryVal, setSparqlQueryValState] = useState(defaultNewTab.sparqlQueryVal);
-    // const [url, setUrlState] = useState(defaultNewTab.url);
-    // const [graphNameIri, setGraphNameIriState] = useState(defaultNewTab.graphNameIri);
-    // const [timeOutVal, setTimeoutValState] = useState(defaultNewTab.timeOutVal);
-    // const [format, setFormatState] = useState(defaultNewTab.format);
-    // const [responseWindowFormat, setResponseWindowFormatState] = useState(defaultNewTab.responseWindowFormat);
-    // const [currentlyChosenOlderQuery, setCurrentlyChosenOlderQueryState] = useState(defaultNewTab.currentlyChosenOlderQuery);
-    // const [saveCheckBoxVal, setSaveCheckboxValState] = useState(defaultNewTab.saveCheckBoxVal);
-    // const [queryNameVal, setQueryNameValState] = useState(defaultNewTab.queryNameVal);
-    // const [previewType, setPreviewTypeState] = useState(defaultNewTab.previewType);
-    // const [theme, setThemeState] = useState(defaultNewTab.theme);
-    // const [responseWindowHeight, setResponseWindowHeightState] = useState(defaultNewTab.responseWindowHeight);
-    // const [currentMarker, setCurrentMarkerState] = useState(defaultNewTab.currentMarker);
-    // const [responseWindowResponse, setWindowResponseState] = useState('');
-    // const [responseWindowResponseTable, setWindowResponseTableState] = useState('');
 
     function createNewTab(newTab, isPublic, queryId) {
         // console.log(queryId);
@@ -397,5 +379,7 @@ SELECT * WHERE {
         localhostLoaded,
         triggerCodeMirrorStateChange,
         formatOptions,
+        queryId: tabs[currentTab]?.queryId,
+        isPublic: tabs[currentTab]?.isPublic,
     };
 };

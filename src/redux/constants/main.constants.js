@@ -38,3 +38,8 @@ export const GET_SAVED_QUERY_RESULT = {
     entity: 'GET_SAVED_QUERY_RESULT',
     action: Action.HANDLE,
 };
+
+export const DELETE_QUERY = {
+    entity: 'DELETE_QUERY',
+    action: Action.HANDLE,
+};
