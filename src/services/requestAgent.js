@@ -1,9 +1,6 @@
 import axios from 'axios';
-// require('dotenv').config();
 
 const API_ENDPOINT = 'http://localhost:8080';
-// const API_ENDPOINT = process.env.REACT_APP_FITNESS_API_ENDPOINT;
-// const API_ENDPOINT = 'http://132.148.128.106:3000';
 
 let requestsLog = [];
 

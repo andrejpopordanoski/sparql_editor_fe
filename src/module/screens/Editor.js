@@ -586,6 +586,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                         {windowResponseTable?.head && (
                             <View style={{ height: '100%', width: '100%', overflow: 'auto' }}>
                                 <DataTable
+                                    // responsive={true}
                                     noHeader={true}
                                     columns={windowResponseTable?.head?.vars.map(el => {
                                         return {
