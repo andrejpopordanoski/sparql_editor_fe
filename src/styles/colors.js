@@ -41,17 +41,17 @@ export const colors = {
     },
 };
 
-function createColorStyles(type) {
-    let obj = {};
-    for (let color in colors) {
-        if (colors.hasOwnProperty(color)) {
-            if (type === 'background') obj[`${color}`] = { backgroundColor: `${colors[color]}` };
-            else if (type === 'color') obj[`${color}`] = { color: `${colors[color]}` };
-        }
-    }
-    // console.log(obj);
-    return obj;
-}
+// function createColorStyles(type) {
+//     let obj = {};
+//     for (let color in colors) {
+//         if (colors.hasOwnProperty(color)) {
+//             if (type === 'background') obj[`${color}`] = { backgroundColor: `${colors[color]}` };
+//             else if (type === 'color') obj[`${color}`] = { color: `${colors[color]}` };
+//         }
+//     }
+
+//     return obj;
+// }
 
 // export const backgroundColorStyles = StyleSheet.create(createColorStyles('background'));
 

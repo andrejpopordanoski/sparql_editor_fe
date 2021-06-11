@@ -4,7 +4,6 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import NativeSelect from '@material-ui/core/NativeSelect';
 import InputBase from '@material-ui/core/InputBase';
 import { headers, colors } from 'styles';
 
@@ -22,7 +21,7 @@ const BootstrapInput = withStyles(theme => ({
         borderBottom: '1px solid #ced4da',
         fontSize: 15,
         minWidth: 75,
-        backgroundColor: 'rgb(250,250,250)',
+        // backgroundColor: 'rgb(250,250,250)',
 
         paddingLeft: '10px',
         // height: 50,
@@ -38,58 +37,18 @@ const BootstrapInput = withStyles(theme => ({
     },
 }))(InputBase);
 
-const BootstrapInput2 = withStyles(theme => ({
-    root: {
-        'label + &': {
-            marginTop: theme.spacing(2) + 1,
-            marginLeft: 0,
-            width: 140,
-        },
-    },
-    input: {
-        // borderRadius: 5,
-        // position: 'relative',
-        // backgroundColor: theme.palette.common.white,
-        border: `1px solid ${colors.borderGrayColor()}`,
-        borderRadius: 4,
-        backgroundColor: colors.backgroundLightGray(),
-
-        // // fontSize: 14,
-        // width: '100%',
-        // height: 'auto',
-        minWidth: 100,
-        padding: '10px 15px',
-        borderTopLeftRadius: '10px',
-        borderTopRightRadius: '10px',
-        transition: theme.transitions.create(['border-color', 'box-shadow']),
-        // Use the system font instead of the default Roboto font.
-        ...headers.H6(colors.primaryText(), 'Medium'),
-        '&:focus': {
-            // borderRadius: 5,
-            borderColor: '#80bdff',
-            backgroundColor: 'rgb(245,245,245)',
-
-            // borderWidth: 2,
-            // boxShadow: '0 0 0 0.2rem rgba(0,123,255,.25)',
-        },
-    },
-}))(InputBase);
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
     margin: {
         margin: 0,
     },
 }));
 
-export default function CustomizedSelects({ noSelectOpt, label, options, currentOption, setCurrentOption, onSelect, outlined, style }) {
+export default function CustomizedSelects({ label, options, currentOption, setCurrentOption, onSelect, style }) {
     const classes = useStyles();
-    const [age, setAge] = React.useState('');
-    const handleChange = event => {
-        setAge(event.target.value);
-    };
+
     return (
         <div>
-            <FormControl className={{ ...classes.margin, ...style }}>
+            <FormControl>
                 {label && <InputLabel id="demo-customized-select-label">{label}</InputLabel>}
                 <Select
                     labelId="demo-customized-select-label"
@@ -104,15 +63,12 @@ export default function CustomizedSelects({ noSelectOpt, label, options, current
                     }}
                     input={<BootstrapInput />}
                 >
-                    {/* <MenuItem value="">
-                        <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Ten</MenuItem>
-                    <MenuItem value={20}>Twenty</MenuItem>
-                    <MenuItem value={30}>Thirty</MenuItem> */}
-
-                    {options.map(el => {
-                        return <MenuItem value={el.value}>{el.name}</MenuItem>;
+                    {options?.map((el, index) => {
+                        return (
+                            <MenuItem key={index} value={el.value}>
+                                {el.name}
+                            </MenuItem>
+                        );
                     })}
                 </Select>
             </FormControl>

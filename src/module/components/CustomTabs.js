@@ -1,11 +1,10 @@
-import { Button, makeStyles, Tab, Tabs, withStyles } from '@material-ui/core';
+import { makeStyles, Tab, Tabs, withStyles } from '@material-ui/core';
 import { useState } from 'react';
 import { palette } from 'styles/pallete';
-import View from './View';
-import AddIcon from '@material-ui/icons/Add';
+
 import { colors } from 'styles';
 import CloseIcon from '@material-ui/icons/Close';
-export const AntTabs = withStyles(theme => ({
+export const AntTabs = withStyles(() => ({
     root: {
         borderBottom: '1px solid #e8e8e8',
         '&$selected': {

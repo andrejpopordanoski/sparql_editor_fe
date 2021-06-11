@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 
-import { stateIsLoaded, stateIsLoading } from '../../services/stateHelpers';
+import { stateIsLoaded } from '../../services/stateHelpers';
 
-import { headers, colors, basicStyles } from 'styles';
+import { headers, colors } from 'styles';
 import View from 'module/components/View';
 import Text from 'module/components/Text';
 import { Button, TextField } from '@material-ui/core';
@@ -23,13 +23,13 @@ export default function RegisterScreen({ history }) {
         if (stateIsLoaded(registerState)) {
             dispatch(passwordLoginAction(username, password));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [registerState, dispatch]);
 
     // const authState = useSelector(state => state.auth);
     // if (stateIsLoaded(authState) && authState.persisted) {
     //     history.replace('/');
     // }
-    // console.log(registerState);
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -47,7 +47,7 @@ export default function RegisterScreen({ history }) {
     return (
         <View style={{ height: '100vh', backgroundColor: colors.background(10), flex: 1 }}>
             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                <View style={{ width: 400, padding: 20, backgroundColor: '#FFFFFF', boxShadow: '-10px 12px 15px -1px' + ' rgba(0,0,0,0.4)' }}>
+                <View style={{ width: 400, padding: 20, backgroundColor: '#FFFFFF', boxShadow: '-10px 12px 15px -1px rgba(0,0,0,0.4)' }}>
                     <Text
                         style={{
                             fontSize: 30,

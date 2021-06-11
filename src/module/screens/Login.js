@@ -1,13 +1,13 @@
-import { Button, ButtonBase, TextField } from '@material-ui/core';
+import { Button, TextField } from '@material-ui/core';
 import Text from 'module/components/Text';
 import View from 'module/components/View';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, Redirect } from 'react-router-dom';
 import { passwordLoginAction } from 'redux/actions/auth.actions';
 import { stateHasFailed, stateIsLoaded } from 'services/stateHelpers';
 import { tokenHelper } from 'services/tokenHelpers';
-import { basicStyles, colors, headers } from 'styles';
+import { colors, headers } from 'styles';
 import { palette } from 'styles/pallete';
 
 export default function Login({ history }) {
@@ -64,7 +64,7 @@ export default function Login({ history }) {
                 justifyContent: 'center',
             }}
         >
-            <View style={{ width: 400, padding: 20, backgroundColor: '#FFFFFF', boxShadow: '-10px 12px 15px -1px' + ' rgba(0,0,0,0.4)' }}>
+            <View style={{ width: 400, padding: 20, backgroundColor: '#FFFFFF', boxShadow: '-10px 12px 15px -1px rgba(0,0,0,0.4)' }}>
                 <Text
                     style={{
                         ...headers.H1('black'),

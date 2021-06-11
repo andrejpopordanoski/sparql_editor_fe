@@ -1,27 +1,27 @@
-import { Button, FormControl, Select, Typography, InputLabel, MenuItem } from '@material-ui/core';
-import CustomizedSelects from 'module/components/CustomSelect';
-import { AntTab, useStyles, AntTabs } from 'module/components/CustomTabs';
+import { Button } from '@material-ui/core';
+
+import { AntTab, AntTabs } from 'module/components/CustomTabs';
 import Text from 'module/components/Text';
 import View from 'module/components/View';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutAction } from 'redux/actions/auth.actions';
-import { tokenHelper } from 'services/tokenHelpers';
+
 import Editor from './Editor';
 import { useTabConfig } from './useTabConfig';
 import AddIcon from '@material-ui/icons/Add';
 import { palette } from 'styles/pallete';
 import { colors, headers } from 'styles';
 import SideMenu from 'module/screens/SideMenu';
-import { getAllQueriesAction, getSinglePublicQueryAction } from 'redux/actions/data.actions';
+import { getSinglePublicQueryAction } from 'redux/actions/data.actions';
 import { usePagination } from './usePagination';
 import queryString from 'query-string';
+import { stateHasFailed } from 'services/stateHelpers';
 
 export default function EditorWrapper({ history }) {
     // const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
     // const [currentTab, setCurrentTab] = useState(0);
     // const [tabs, setTabs] = useState(['Unsaved query']);
-    const allQueries = useSelector(state => state.allQueries);
 
     // const savedQueryOptions = allQueries.data.data
     //     ? allQueries?.data?.data.map(el => {
@@ -33,8 +33,6 @@ export default function EditorWrapper({ history }) {
     const usePaginationPrivate = usePagination();
     const singlePublicQuery = useSelector(state => state.singlePublicQuery);
 
-    const classes = useStyles();
-
     const authState = useSelector(state => state.auth);
     const dispatch = useDispatch();
 
@@ -45,18 +43,21 @@ export default function EditorWrapper({ history }) {
 
     useEffect(() => {
         if (history.location.search) {
-            console.log(history.location.search);
             let params = queryString.parse(history.location.search);
-            console.log(params);
+
             if (params.query_id) {
                 dispatch(getSinglePublicQueryAction(params.query_id));
                 // useTabs.createNewTab();
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        if (singlePublicQuery.data.data) {
+        if (stateHasFailed(singlePublicQuery)) {
+            history.replace('/sparql');
+        }
+        if (singlePublicQuery?.data?.data) {
             let el = singlePublicQuery.data.data;
             let newTab = {
                 sparqlQueryVal: el.queryString,
@@ -71,13 +72,14 @@ export default function EditorWrapper({ history }) {
 
             history.replace('/sparql?query_id=' + el.id);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [singlePublicQuery]);
 
     // useEffect(() => {
-    //     console.log(history);
+
     //     if (history.location.search) {
     //         let params = queryString.parse(history.location.search);
-    //         console.log(params);
+
     //         if (params.query_id) {
     //             useTabs.createNewTab();
     //         }
@@ -145,10 +147,10 @@ export default function EditorWrapper({ history }) {
                     <View>
                         <div>
                             <AntTabs color="primary" value={useTabs.currentTab} onChange={handleChange} aria-label="ant example">
-                                {useTabs.tabsLabels.map((el, index) => {
+                                {useTabs?.tabs?.map((el, index) => {
                                     return (
                                         <AntTab
-                                            label={el}
+                                            label={el.tabLabel}
                                             key={index}
                                             onClosePress={() => {
                                                 useTabs.closeTab(index);

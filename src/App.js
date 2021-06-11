@@ -11,6 +11,8 @@ import RegisterScreen from 'module/screens/Register';
 import { tokenHelper } from 'services/tokenHelpers';
 import EditorWrapper from 'module/screens/EditorWrapper';
 
+import { NotificationsProvider } from 'module/screens/NotificationsProvider';
+
 const theme = createMuiTheme({
     palette: palette,
 });
@@ -22,17 +24,22 @@ function App() {
         <ThemeProvider theme={theme}>
             <Provider store={store}>
                 {/* <div> Hello</div> */}
-                <Router style={{ flex: 1 }}>
-                    <Switch>
-                        <Route exact path="/">
-                            {!loggedIn ? <Redirect to="/login" /> : <Redirect to="/sparql" />}
-                        </Route>
+                <NotificationsProvider>
+                    <Router style={{ flex: 1 }}>
+                        <Switch>
+                            <Route exact path="/">
+                                {!loggedIn ? <Redirect to="/login" /> : <Redirect to="/sparql" />}
+                            </Route>
 
-                        <Route path="/sparql" exact component={EditorWrapper} />
-                        <Route path="/login" exact component={Login} />
-                        <Route path="/register" exact component={RegisterScreen} />
-                    </Switch>
-                </Router>
+                            <Route path="/sparql" exact component={EditorWrapper} />
+                            <Route path="/login" exact component={Login} />
+                            <Route path="/register" exact component={RegisterScreen} />
+                            <Route path="/">
+                                <Redirect to="/sparql" />
+                            </Route>
+                        </Switch>
+                    </Router>
+                </NotificationsProvider>
             </Provider>
         </ThemeProvider>
     );

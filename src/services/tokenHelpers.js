@@ -30,7 +30,7 @@ export const tokenHelper = {
         if (persist) {
             try {
                 let data = JSON.parse(JSON.parse(persist).auth).data.data;
-                // console.log(data);
+
                 let expires_in = data.expires_in;
 
                 let token_creation = data.token_creation;

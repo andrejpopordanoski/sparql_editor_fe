@@ -12,7 +12,7 @@ import tokenMiddleware from 'redux/config/middleware/tokenMiddleware';
 // const middleware = applyMiddleware(promise, thunk, createLogger());
 
 // const customMiddleware = store => next => action => {
-//     console.log(store, next, action);
+
 //     next(action);
 // };
 const middleware = applyMiddleware(tokenMiddleware, promise, thunk);
@@ -20,19 +20,19 @@ const middleware = applyMiddleware(tokenMiddleware, promise, thunk);
 // const middleware = applyMiddleware(tokenMiddleware, promise, thunk);
 
 const persistConfig = {
-  key: 'sparql-editor',
-  storage,
-  whitelist: ['auth'],
+    key: 'sparql-editor',
+    storage,
+    whitelist: ['auth'],
 };
 
 const persistedReducer = persistReducer(persistConfig, reducers);
 
 const composeEnhancers =
-  (window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ &&
-    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
-      trace: true,
-    })) ||
-  compose;
+    (window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ &&
+        window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+            trace: true,
+        })) ||
+    compose;
 
 const store = createStore(persistedReducer, composeEnhancers(middleware));
 const persistor = persistStore(store);

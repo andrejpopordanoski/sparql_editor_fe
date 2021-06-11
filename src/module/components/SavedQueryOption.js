@@ -34,7 +34,7 @@ export default function SavedQueryOption({ name, url, onClick, author, showAutho
     return (
         <View
             style={{
-                flex: 1,
+                // flex: 1,
                 paddingLeft: 20,
                 paddingRight: 20,
                 paddingTop: 10,
@@ -74,7 +74,6 @@ export default function SavedQueryOption({ name, url, onClick, author, showAutho
                     }}
                     color={deleteIconHover ? 'primary' : 'secondary'}
                     onClick={() => {
-                        console.log('click');
                         submit();
                     }}
                 ></DeleteIcon>

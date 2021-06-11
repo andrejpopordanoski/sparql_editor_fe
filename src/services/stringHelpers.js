@@ -25,7 +25,7 @@ export const constructQueryString = queryItems => {
 //     let element = document.createElement('div');
 //     element.innerHTML = html;
 //     let imgSrcUrls = element.getElementsByTagName('img');
-//     // console.log(imgSrcUrls);
+
 //     for (let i = 0; i < imgSrcUrls.length; i++) {
 //         let urlValue = imgSrcUrls[i].getAttribute('src');
 //         if (urlValue) {

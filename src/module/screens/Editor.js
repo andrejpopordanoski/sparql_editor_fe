@@ -1,17 +1,17 @@
-import { Button, LinearProgress, TextareaAutosize } from '@material-ui/core';
+import { Button, LinearProgress } from '@material-ui/core';
 import React, { useEffect, useRef, useState } from 'react';
-import { basicStyles, colors, headers } from 'styles';
-import { InputLabel } from '@material-ui/core';
+import { colors } from 'styles';
+
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllQueriesAction, getSavedQueryResultAction, processQuery, processQueryHTML, saveQueryAction } from 'redux/actions/data.actions';
+import { processQuery, processQueryJSON, saveQueryAction } from 'redux/actions/data.actions';
 
 import { themes } from 'static';
 import './Editor.css';
-import { Resizable, ResizableBox } from 'react-resizable';
+import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import View from 'module/components/View';
 import Text from 'module/components/Text';
-import { tokenHelper } from 'services/tokenHelpers';
+
 import { stateIsLoaded, stateIsLoading } from 'services/stateHelpers';
 import 'codemirror/addon/hint/show-hint';
 import 'codemirror/addon/hint/sql-hint';
@@ -34,7 +34,7 @@ import CustomInput from 'module/components/CustomInput';
 import CustomizedSelects from 'module/components/CustomSelect';
 // import playIcon from 'assets/icons/play.png';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import ResizableBoxHandle from 'module/components/ResizableBoxHandle';
+
 import GetAppIcon from '@material-ui/icons/GetApp';
 import TableChartIcon from '@material-ui/icons/TableChart';
 import ListAltIcon from '@material-ui/icons/ListAlt';
@@ -63,7 +63,7 @@ var htmlToReactParser = new HtmlToReactParser();
 const SparqlParser = require('sparqljs').Parser;
 const parser = new SparqlParser();
 
-export default function Editor({ history, style, currentTab, index, useTabConfig }) {
+export default function Editor({ style, currentTab, useTabConfig }) {
     // const classes = useStyles();
     // const controller = new AbortController();
     // const signal = controller.signal;
@@ -81,10 +81,10 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         setFormat,
         responseWindowFormat,
         setResponseWindowFormat,
-        currentlyChosenOlderQuery,
-        setCurrentlyChosenOlderQuery,
+        // currentlyChosenOlderQuery,
+        // setCurrentlyChosenOlderQuery,
         saveCheckBoxVal,
-        setSaveCheckboxVal,
+        // setSaveCheckboxVal,
         queryNameVal,
         setQueryNameVal,
         previewType,
@@ -99,29 +99,29 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         setWindowResponse,
         setWindowResponseTable,
         windowResponseTable,
-        createNewTab,
+        // createNewTab,
         privateModifierCheckBoxVal,
-        setPrivateModifierCheckBoxVal,
+        // setPrivateModifierCheckBoxVal,
         localhostLoaded,
         triggerCodeMirrorStateChange,
         queryType,
         setQueryType,
         formatOptions,
-        queryId,
+        // queryId,
         isPublic,
     } = useTabConfig;
 
     const dispatch = useDispatch();
 
-    const authState = useSelector(state => state.auth);
+    // const authState = useSelector(state => state.auth);
     const queryState = useSelector(state => state.query);
     const queryStateHTML = useSelector(state => state.queryHTML);
-    const allQueries = useSelector(state => state.allQueries);
+    // const allQueries = useSelector(state => state.allQueries);
     const savedQueryResult = useSelector(state => state.savedQueryResult);
 
     const codeMirrorRef = useRef(null);
     const codeMirrorRef2 = useRef(null);
-    let loggedIn = authState.data?.data?.access_token;
+
     const [completed, setCompleted] = useState(0);
     // const [loggedIn, setLoggedIn] = useState(tokenHelper.auth());
 
@@ -161,11 +161,11 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         'text/tab-separated-values': 'tsv',
     };
 
-    const savedQueryOptions = allQueries.data.data
-        ? allQueries?.data?.data.userQueries.map(el => {
-              return { name: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''), value: el };
-          })
-        : [];
+    // const savedQueryOptions = allQueries.data.data
+    //     ? allQueries?.data?.data.userQueries.map(el => {
+    //           return { name: el.queryName + (el.queryNameSuffix ? el.queryNameSuffix : ''), value: el };
+    //       })
+    //     : [];
 
     useEffect(() => {
         if (codeMirrorRef.current) {
@@ -173,23 +173,31 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
             codeMirrorRef.current.codeMirror.setValue(sparqlQueryVal);
             validator(sparqlQueryVal);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentTab, localhostLoaded, triggerCodeMirrorStateChange]);
 
     useEffect(() => {
         if (stateIsLoaded(queryState)) {
             setWindowResponse(setupDataForResponseWindow(queryState?.data?.data));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [queryState]);
 
     useEffect(() => {
         if (stateIsLoaded(savedQueryResult)) {
             setWindowResponse(setupDataForResponseWindow(savedQueryResult?.data?.data));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [savedQueryResult]);
 
     useEffect(() => {
         if (codeMirrorRef2.current) {
-            codeMirrorRef2.current.codeMirror.setValue(windowResponse);
+            try {
+                console.log(windowResponse);
+                codeMirrorRef2.current.codeMirror.setValue(windowResponse);
+            } catch (e) {
+                console.log(e);
+            }
         }
     }, [windowResponse]);
 
@@ -197,13 +205,18 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         if (stateIsLoaded(queryStateHTML)) {
             setWindowResponseTable(queryStateHTML?.data?.data);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [queryStateHTML]);
 
-    useEffect(() => {
-        if (codeMirrorRef2.current) {
-            codeMirrorRef2.current.codeMirror.setValue(windowResponse);
-        }
-    }, [windowResponse]);
+    // useEffect(() => {
+    //     if (codeMirrorRef2.current) {
+    //         try {
+    //             codeMirrorRef2.current.codeMirror.setValue(windowResponse);
+    //         } catch (e) {
+    //             console.log(e);
+    //         }
+    //     }
+    // }, [windowResponse]);
 
     function setupDataForResponseWindow(data) {
         switch (format) {
@@ -241,13 +254,15 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
         }
         try {
             let parsed = parser.parse(data);
-            console.log(parsed);
+
             setQueryType(parsed.queryType.toLowerCase());
         } catch (e) {
-            console.log(e);
-            let splitted = e.message.split(/\r?\n/);
+            let splitted = e?.message?.split(/\r?\n/);
             if (splitted.length === 4) {
-                let splitFirstLine = splitted[0].split(' ');
+                let splitFirstLine = splitted[0]?.split(' ');
+                if (!splitFirstLine) {
+                    return;
+                }
                 let lineNumber = splitFirstLine[splitFirstLine.length - 1];
                 lineNumber = lineNumber.substring(0, lineNumber.length - 1);
                 let mistakeStart = splitted[2].length;
@@ -340,7 +355,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                                         <FileCopyIcon
                                             style={{ cursor: 'pointer' }}
                                             onClick={() => {
-                                                console.log('click');
                                                 alert('Link was copied to clipboard');
                                             }}
                                             color="secondary"
@@ -389,8 +403,8 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                                 // eve.preventDefault();
                                 if (!stateIsLoading(queryState)) {
                                     dispatch(processQuery(url, graphNameIri, sparqlQueryVal, format, timeOutVal, queryType));
-                                    if (queryType == 'select') {
-                                        dispatch(processQueryHTML(url, graphNameIri, sparqlQueryVal, timeOutVal, queryType));
+                                    if (queryType === 'select') {
+                                        dispatch(processQueryJSON(url, graphNameIri, sparqlQueryVal, timeOutVal, queryType));
                                     }
                                     setResponseWindowFormat(formatToCodeMirrorMode[format]);
                                     if (saveCheckBoxVal) {
@@ -446,7 +460,6 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                     value={sparqlQueryVal}
                     lint={true}
                     onChange={data => {
-                        console.log('execs');
                         setSparqlQueryVal(data);
                         validator(data);
                     }}
@@ -489,7 +502,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                         style={{ cursor: 'pointer', marginRight: 35 }}
                         fontSize={'large'}
                         onClick={() => {
-                            if (format != 'application/json') {
+                            if (format !== 'application/json') {
                                 var blob = new Blob([queryState.data.data], { type: `${format};charset=utf-8` });
                             } else {
                                 var blob = new Blob([JSON.stringify(queryState.data.data)], { type: `${format};charset=utf-8` });
@@ -534,7 +547,7 @@ export default function Editor({ history, style, currentTab, index, useTabConfig
                             style={{ height: 250, width: '100%' }}
                             value={windowResponse}
                             lint={true}
-                            onChange={data => {}}
+                            // onChange={data => {}}
                             options={{
                                 lineNumbers: true,
                                 lint: true,

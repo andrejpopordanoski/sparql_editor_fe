@@ -5,7 +5,6 @@ import { loginApiRequest, refreshTokenRequest } from 'services/apiRequests/login
 import { buildActionType } from 'redux/actions/buildActionType';
 import requestAgent from 'services/requestAgent';
 import { REGISTER_API } from 'services/api';
-import userEvent from '@testing-library/user-event';
 
 const passwordLoginAction = (email, password) => async dispatch => {
     dispatch({ type: buildActionType(LOGIN, ActionStatus.START) });

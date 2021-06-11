@@ -1,8 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-
-import { useSelector } from 'react-redux';
-
-import { tokenHelper } from 'services/tokenHelpers';
+import { useEffect, useState } from 'react';
 
 const formatOptions = {
     select: [
@@ -85,6 +81,7 @@ const formatOptions = {
 
 export const useTabConfig = history => {
     const defaultNewTab = {
+        tabLabel: 'Untitled',
         sparqlQueryVal: `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT * WHERE {
@@ -115,7 +112,6 @@ SELECT * WHERE {
     const [privateModifierCheckBoxVal, setPrivateModifierCheckBoxVal] = useState(false);
 
     useEffect(() => {
-        console.log('on start only');
         let tabsDataString = localStorage.getItem('persist:tabs');
         let tabsLabelsString = localStorage.getItem('persist:tabsLabels');
 
@@ -124,14 +120,11 @@ SELECT * WHERE {
                 let tabsFromString = JSON.parse(tabsDataString);
 
                 let tabsLabelsFromString = JSON.parse(tabsLabelsString);
-                console.log('tabs from string');
-                console.log(tabsFromString);
+
                 setTabs(tabsFromString);
                 setTabsLabels(tabsLabelsFromString);
                 setLocalhostLoaded(true);
-            } catch (e) {
-                console.log('Something went wrong parsing saved tabs');
-            }
+            } catch (e) {}
         }
 
         // setSparqlQueryVal(tabs[currentTab].sparqlQueryVal);
@@ -145,11 +138,10 @@ SELECT * WHERE {
                 history.replace('/sparql');
             }
         }
-    }, [currentTab]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentTab, triggerCodeMirrorStateChange]);
 
     useEffect(() => {
-        // console.log('this useffect is in effect');
-
         let tabsToSave = [];
         tabs.forEach(tab => {
             let { currentMarker, windowResponse, windowResponseTable, ...rest } = tab;
@@ -158,15 +150,15 @@ SELECT * WHERE {
 
         localStorage.setItem('persist:tabs', JSON.stringify(tabsToSave));
         localStorage.setItem('persist:tabsLabels', JSON.stringify(tabsLabels));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tabs]);
 
     useEffect(() => {}, []);
 
     function createNewTab(newTab, isPublic, queryId) {
-        // console.log(queryId);
-        let oldTabIndex = tabs.findIndex(el => el.queryId == queryId);
-        console.log('creating', oldTabIndex);
-        if (oldTabIndex != -1 && queryId != undefined) {
+        let oldTabIndex = tabs.findIndex(el => el.queryId === queryId);
+
+        if (oldTabIndex !== -1 && queryId !== undefined) {
             setCurrentTab(oldTabIndex);
             return;
         }
@@ -180,9 +172,11 @@ SELECT * WHERE {
                 ...newTab,
                 isPublic: isPublic,
                 queryId: queryId,
+                tabLabel: newTab?.queryNameVal || 'Untitled',
             };
             tabs.push(fullNewTab);
         }
+
         setTabs([...tabs]);
         setCurrentTab(tabs.length - 1);
     }
@@ -270,6 +264,7 @@ SELECT * WHERE {
         tabs[currentTab] = {
             ...tabs[currentTab],
             queryNameVal: data,
+            tabLabel: data,
         };
         tabsLabels[currentTab] = data;
         setTabs([...tabs]);
@@ -325,7 +320,7 @@ SELECT * WHERE {
     }
 
     function setQueryType(data) {
-        if (tabs[currentTab].queryType != data) {
+        if (tabs[currentTab].queryType !== data) {
             tabs[currentTab] = {
                 ...tabs[currentTab],
                 queryType: data.toLowerCase(),
@@ -336,6 +331,7 @@ SELECT * WHERE {
     }
 
     return {
+        tabs,
         sparqlQueryVal: tabs[currentTab]?.sparqlQueryVal,
         setSparqlQueryVal: setSparqlQueryVal,
         url: tabs[currentTab]?.url,

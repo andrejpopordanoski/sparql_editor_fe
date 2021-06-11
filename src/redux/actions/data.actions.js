@@ -10,7 +10,6 @@ import {
 } from 'services/api';
 import { PlainApiRequest, PostRequestWithData } from 'services/apiRequests';
 import {
-    EXAMPLE_ACTION,
     EXECUTE_QUERY_HTML,
     EXECUTE_QUERY,
     SAVE_QUERY,
@@ -50,7 +49,7 @@ export const processQuery = (url, graphNameIri, sparqlQueryVal, format, timeOutV
     }
 };
 
-export const processQueryHTML = (url, graphNameIri, sparqlQueryVal, timeOutVal, queryType) => async dispatch => {
+export const processQueryJSON = (url, graphNameIri, sparqlQueryVal, timeOutVal, queryType) => async dispatch => {
     let data = new FormData();
     data.set('url', url);
     data.set('defaultGraphSetIri', graphNameIri);
@@ -161,6 +160,14 @@ export const getSinglePublicQueryAction = queryId => async dispatch => {
             type: buildActionType(GET_SINGLE_PUBLIC_QUERY, ActionStatus.DONE),
             payload: {
                 ...response,
+            },
+        });
+    } else {
+        console.log('comes here');
+        dispatch({
+            type: buildActionType(GET_SINGLE_PUBLIC_QUERY, ActionStatus.FAILED),
+            payload: {
+                errors: response.errors,
             },
         });
     }

@@ -7,7 +7,6 @@ import FormControl from '@material-ui/core/FormControl';
 
 import { headers, colors } from 'styles';
 import { InputLabel } from '@material-ui/core';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
 function NumberFormatCustom(props) {
     const { inputRef, onChange, ...other } = props;
     return (
@@ -83,7 +82,7 @@ export default function CustomInput({ style, value, setValue, maxSize, type, lab
                 endAdornment={endIcon ? endIcon : false}
                 value={value}
                 onChange={event => {
-                    if (type == 'number') {
+                    if (type === 'number') {
                         if (!isNaN(event.target.value)) {
                             setValue(event.target.value);
                         }
