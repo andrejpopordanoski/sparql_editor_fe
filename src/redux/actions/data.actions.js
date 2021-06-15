@@ -163,7 +163,6 @@ export const getSinglePublicQueryAction = queryId => async dispatch => {
             },
         });
     } else {
-        console.log('comes here');
         dispatch({
             type: buildActionType(GET_SINGLE_PUBLIC_QUERY, ActionStatus.FAILED),
             payload: {

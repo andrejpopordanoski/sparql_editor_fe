@@ -193,7 +193,6 @@ export default function Editor({ style, currentTab, useTabConfig }) {
     useEffect(() => {
         if (codeMirrorRef2.current) {
             try {
-                console.log(windowResponse);
                 codeMirrorRef2.current.codeMirror.setValue(windowResponse);
             } catch (e) {
                 console.log(e);
