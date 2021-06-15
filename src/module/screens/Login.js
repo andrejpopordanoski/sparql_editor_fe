@@ -101,7 +101,7 @@ export default function Login({ history }) {
                 ></TextField>
                 {errorMsg && (
                     <View style={{ justifyContent: 'center', flex: 1, marginTop: 30 }}>
-                        <Text style={{ ...headers.H5(colors.error()), textAlign: 'center' }}>Something went wrong while processing the request </Text>
+                        <Text style={{ ...headers.H5(colors.error()), textAlign: 'center' }}>Username or password is invalid</Text>
                     </View>
                 )}
                 <Link onClick={toRegister} style={{ fontSize: 13, textAlign: 'center', marginTop: 30, ...headers.H5() }}>
