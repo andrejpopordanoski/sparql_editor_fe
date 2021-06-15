@@ -38,7 +38,7 @@ export const tokenHelper = {
 
                 return (date_now - token_creation) / 1000 + 500 > expires_in;
             } catch (message) {
-                console.warn('Catch exception parsing persist:sparql-editor in token expire', message);
+                // console.warn('Catch exception parsing persist:sparql-editor in token expire', message);
                 return false;
             }
         } else {

@@ -4,8 +4,9 @@ import View from 'module/components/View';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, Redirect } from 'react-router-dom';
-import { passwordLoginAction } from 'redux/actions/auth.actions';
+import { passwordLoginAction, resetLoginStatusAction } from 'redux/actions/auth.actions';
 import { stateHasFailed, stateIsLoaded } from 'services/stateHelpers';
+import { validateEmail } from 'services/stringHelpers';
 import { tokenHelper } from 'services/tokenHelpers';
 import { colors, headers } from 'styles';
 import { palette } from 'styles/pallete';
@@ -28,6 +29,7 @@ export default function Login({ history }) {
     useEffect(() => {
         if (stateHasFailed(authState)) {
             setErrorMsg(authState.error);
+            dispatch(resetLoginStatusAction());
         }
     }, [authState]);
     const toRegister = () => {
@@ -39,16 +41,19 @@ export default function Login({ history }) {
     }
 
     const login = () => {
-        if (!username.length) {
+        console.log(!username.length, !validateEmail(username));
+        if (!username.length || !validateEmail(username)) {
             setUsernameError(true);
-            setUsernameErrorMessage('username cannot be empty');
-        }
-        if (!password.length) {
+            setUsernameErrorMessage('Invalid email. Please write your email in the following format: someone@example.com');
+        } else if (!password.length) {
             setPasswordError(true);
-            setPasswordErrorMessage('password cannot be empty');
+            setPasswordErrorMessage('Password cannot be empty');
         } else {
             setPasswordError(false);
             setUsernameError(false);
+            setUsernameErrorMessage('');
+            setPasswordErrorMessage('');
+
             dispatch(passwordLoginAction(username, password));
         }
     };

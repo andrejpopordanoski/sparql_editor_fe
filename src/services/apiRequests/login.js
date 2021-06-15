@@ -18,6 +18,16 @@ export const loginApiRequest = async (email, password) => {
     }
 };
 
+export const registerApiRequest = async (api, user, headers) => {
+    try {
+        const responseData = await requestAgent.post(api, user, headers);
+
+        return handleSuccess(responseData);
+    } catch (e) {
+        return handleError();
+    }
+};
+
 export const refreshTokenRequest = async () => {
     let data = new FormData();
     let refreshToken = tokenHelper.refreshToken;

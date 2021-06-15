@@ -1,10 +1,14 @@
 import { LOGIN, LOGOUT, REGISTER, STORAGE_PERSIST } from 'redux/constants/auth.constants';
 import { ActionStatus } from 'redux/core/ActionStatus';
 import { persistor } from 'redux/config/store';
-import { loginApiRequest, refreshTokenRequest } from 'services/apiRequests/login';
+import { loginApiRequest, refreshTokenRequest, registerApiRequest } from 'services/apiRequests/login';
 import { buildActionType } from 'redux/actions/buildActionType';
 import requestAgent from 'services/requestAgent';
 import { REGISTER_API } from 'services/api';
+
+export const resetLoginStatusAction = () => async dispatch => {
+    dispatch({ type: buildActionType(LOGIN, ActionStatus.REFRESH) });
+};
 
 const passwordLoginAction = (email, password) => async dispatch => {
     dispatch({ type: buildActionType(LOGIN, ActionStatus.START) });
@@ -44,9 +48,10 @@ export const registerUserAction = (email, password, name, lastName) => async dis
         type: buildActionType(REGISTER, ActionStatus.START),
     });
 
-    const response = await requestAgent.post(REGISTER_API, user, { 'Content-Type': 'application/json' });
+    // const response = await requestAgent.post(REGISTER_API, user, { 'Content-Type': 'application/json' });
+    const response = await registerApiRequest(REGISTER_API, user, { 'Content-Type': 'application/json' });
 
-    if (response.status === 200) {
+    if (response.success) {
         dispatch({
             type: buildActionType(REGISTER, ActionStatus.DONE),
         });
