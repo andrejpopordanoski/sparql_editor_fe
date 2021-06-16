@@ -22,12 +22,10 @@ export default function RegisterScreen({ history }) {
     let loggedIn = tokenHelper.auth();
     const [registerError, setRegisterError] = useState('');
     useEffect(() => {
-        console.log(registerState);
         if (stateIsLoaded(registerState)) {
             dispatch(passwordLoginAction(username, password));
         }
         if (stateHasFailed(registerState)) {
-            console.log('here');
             setRegisterError('User with given username is already in our database');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

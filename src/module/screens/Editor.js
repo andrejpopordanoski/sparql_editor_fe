@@ -195,7 +195,7 @@ export default function Editor({ style, currentTab, useTabConfig }) {
             try {
                 codeMirrorRef2.current.codeMirror.setValue(windowResponse);
             } catch (e) {
-                console.log(e);
+                // console.log(e);
             }
         }
     }, [windowResponse]);

@@ -41,7 +41,6 @@ export default function Login({ history }) {
     }
 
     const login = () => {
-        console.log(!username.length, !validateEmail(username));
         if (!username.length || !validateEmail(username)) {
             setUsernameError(true);
             setUsernameErrorMessage('Invalid email. Please write your email in the following format: someone@example.com');
